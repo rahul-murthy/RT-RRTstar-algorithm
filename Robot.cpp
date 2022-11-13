@@ -2,7 +2,8 @@
 
 void Robot::setup()
 {
-		alive = true; mass = 5.0; scanRadius = sensorRadius; accuracy = accur;
+//		alive = true; mass = 5.0; scanRadius = sensorRadius; accuracy = accur;
+        alive = true; mass = 5.0; scanRadius = 20; accuracy = accur;
 		//battery = 100;
 		//float x = ofRandom(0, ofGetWindowWidth()); float y = ofRandom(0, ofGetWindowHeight());`
 		location.set(0.0,0.0); HOME = location;
@@ -16,7 +17,7 @@ void Robot::setup()
 
 void Robot::setup(ofVec2f loc)
 {
-	alive = true; mass = 5.0; scanRadius = sensorRadius; accuracy = accur;
+	alive = true; mass = 5.0; scanRadius = 20; accuracy = accur;
 	location = loc;
 	HOME = location;
 	velocity.set(0.0, 0.0);
@@ -48,7 +49,7 @@ void Robot::render()
 	this->line.draw();
 
 	ofSetLineWidth(1);
-	ofNoFill();
+	ofFill();
 	ofSetColor(color);
 	ofDrawCircle(location.x,location.y,scanRadius);
 	ofPushMatrix();
