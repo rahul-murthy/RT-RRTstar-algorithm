@@ -82,7 +82,7 @@ inline void Enviroment::setup(ofVec2f _start)
 	SMP::goalFound = false;
 }
 
-inline void Enviroment::update(Robot *car,list<obstacles*> obst)
+inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 {
 	//RRTstar - 
 	//rrtstar.nextIter(nodes, obst);
@@ -108,6 +108,16 @@ inline void Enviroment::update(Robot *car,list<obstacles*> obst)
 	{
 		path = rtrrtstar.currPath;
 		rtrrtstar.currPath.clear();
+	}
+
+	for (auto it : obst)
+	{
+		if (it->isInside(car->getLocation()))
+		{
+			// [Nov12]	Rather than using an infinite loop,
+			//				Should pass the "collision occured" information to the Open Framework and inform the user.
+			while (true);	
+		}
 	}
 	
 	//Following is Informed RRT-star stuff
