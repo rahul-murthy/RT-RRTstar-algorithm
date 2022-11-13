@@ -37,7 +37,7 @@ public:
 	float getScanRadius() { return scanRadius; }
 	// Return Location of Robot
 	ofVec2f getLocation() { return location; }
-	//Return Color of Robot
+	// Return Color of Robot
 	ofColor getColor() { return color; }
 	void fillEnviroment(const list<obstacles*> obst,list<Nodes> &node);
 	void updateEnviroment(list<Nodes> &node, obstacles *obst);

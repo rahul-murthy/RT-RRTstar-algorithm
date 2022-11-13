@@ -30,6 +30,10 @@ class movingObst : public obstacles
 {
 public:
 	movingObst();
+	movingObst(ofVec2f loc);
+#ifdef automatic
+	movingObst(ofVec2f loc, ofVec2f vel);
+#endif // automatic
 	~movingObst();
 	void render();
 #ifdef manual

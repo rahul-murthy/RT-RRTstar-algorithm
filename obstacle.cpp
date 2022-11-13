@@ -112,6 +112,30 @@ movingObst::movingObst()
 	color = { 200,100,20 };
 }
 
+movingObst::movingObst(ofVec2f loc)
+{
+	location = loc;
+	maxVal = obstMaxVelocity;
+#ifdef automatic
+	velocity.set(maxVal*ofRandom(-1, 1), maxVal*ofRandom(-1, 1));
+#endif // automatic
+	radius = 25;
+	mass = 3.14*radius*radius;
+	color = { 200,100,20 };
+}
+
+movingObst::movingObst(ofVec2f loc, ofVec2f vel)
+{
+	location = loc;
+	maxVal = obstMaxVelocity;
+#ifdef automatic
+	velocity = vel;
+#endif // automatic
+	radius = 25;
+	mass = 3.14*radius*radius;
+	color = { 200,100,20 };
+}
+
 movingObst::~movingObst()
 {
 }
