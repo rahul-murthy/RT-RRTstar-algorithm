@@ -37,17 +37,25 @@ void ofApp::setup() {
 	ob = wall;
 	obst.push_back(ob);
 
-	for (unsigned int i = 0; i < numberOfobst; i++)
+
+	for (unsigned int i = 0; i < numberOfstaticObst; i++)
 	{
-		//obstacles *ob = new obstacles();
-		OBST = new movingObst();
+		// static obstacles
+		obstacles *ob = new obstacles();
+		obst.push_back(ob);
+	}
+
+	// moving obstacles' info
+	ofVec2f arrLocation[numberOfmovObst] = { {90, 30} };
+	ofVec2f arrVector[numberOfmovObst] = { {-1, 0} };
+
+	for (unsigned int i = 0; i < numberOfmovObst; i++)
+	{
+		// moving obstacles
+		OBST = new movingObst(arrLocation[i], arrVector[i]);
 		obstacles *ob = OBST;
 		obst.push_back(ob);
 	}
-	//
-	OBST = new movingObst();
-	ob = OBST;
-	obst.push_back(ob);
 
 	cout << "Obst size: " << obst.size() << endl;
 

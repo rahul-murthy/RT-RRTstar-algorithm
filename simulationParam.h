@@ -8,10 +8,12 @@
 #define M(e) ofMap(e,-1,1,0,1);
 const float inf = std::numeric_limits<float>::infinity();
 //--------------------------------------------------------------ofApp.h
-#define numberOfobst 5
+#define numberOfstaticObst 0
+#define numberOfmovObst 1
+#define numberOfobst (numberOfstaticObst+numberOfmovObst)
 //--------------------------------------------------------------obstracle.h
 // #define manual
-#define obstMaxVelocity 10
+#define obstMaxVelocity 5
 #ifndef manual
 #define automatic
 #endif // !manual
