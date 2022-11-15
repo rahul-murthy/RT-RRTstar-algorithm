@@ -28,7 +28,7 @@ void ofApp::setup() {
 	obst.push_back(ob);
 
 	w.set(ofGetWidth() / 4, 0.4*ofGetHeight());
-	wall = new maze(w, 60, 0.2*ofGetHeight());
+	wall = new maze(w, 120, 0.2*ofGetHeight());
 	ob = wall;
 	obst.push_back(ob);
 
