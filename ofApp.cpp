@@ -17,23 +17,38 @@ void ofApp::setup() {
 	//car.setup();
 
 	ofVec2f w;
-	w.set(ofGetWidth() / 2, 0);
-	wall = new maze(w);
+	w.set(0.6 * ofGetWidth(), 0);
+	wall = new maze(w, 20, 160);
 	obstacles *ob = wall;
 	obst.push_back(ob);
 
-	w.set(ofGetWidth() / 2, 0.6*ofGetHeight());
-	wall = new maze(w);
+	w.set(0.2*ofGetWidth(), 0.8*ofGetHeight());
+	wall = new maze(w, 20, 160);
 	ob = wall;
 	obst.push_back(ob);
 
-	w.set(ofGetWidth() / 4, 0.4*ofGetHeight());
-	wall = new maze(w, 120, 0.2*ofGetHeight());
+	w.set(0.1*ofGetWidth(), 0.45*ofGetHeight());
+	wall = new maze(w, 480, 40);
 	ob = wall;
 	obst.push_back(ob);
 
-	w.set(0.75*ofGetWidth(), 0.4*ofGetHeight());
-	wall = new maze(w, 60, 0.2*ofGetHeight());
+	w.set(0.8*ofGetWidth(), 0.4*ofGetHeight());
+	wall = new maze(w, 200, 180);
+	ob = wall;
+	obst.push_back(ob);
+
+	w.set(0.2 * ofGetWidth(), 0.2 * ofGetHeight());
+	wall = new maze(w, 40, 40);
+	ob = wall;
+	obst.push_back(ob);
+
+	w.set(0.86 * ofGetWidth(), 0.1 * ofGetHeight());
+	wall = new maze(w, 40, 40);
+	ob = wall;
+	obst.push_back(ob);
+
+	w.set(0.72 * ofGetWidth(), 0.9 * ofGetHeight());
+	wall = new maze(w, 40, 40);
 	ob = wall;
 	obst.push_back(ob);
 
