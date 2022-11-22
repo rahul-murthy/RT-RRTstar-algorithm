@@ -3,7 +3,8 @@
 struct Nodes
 {
 	ofVec2f location;
-	
+	float time;	// expected time for the robot to reach the Node
+
 	Nodes *parent, *prevParent=NULL;
 
 	bool alive = true;

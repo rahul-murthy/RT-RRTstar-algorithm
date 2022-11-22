@@ -24,6 +24,12 @@ const float inf = std::numeric_limits<float>::infinity();
 #define mVal 4
 #define mForce 1
 #define accur 1.0
+#define circularRobot
+#if defined circularRobot
+#define RobotRadius 25
+#else
+#define RobotRadius 0
+#endif
 //-------------------------------------------------------------Genral
 #define startx 500
 #define starty 500

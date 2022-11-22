@@ -63,13 +63,13 @@ bool obstacles::isCollide(ofVec2f n1, ofVec2f n2)
 		shortest_dist = std::min(d1, d2);
 	}
 
-	if (shortest_dist < radius) 	return true;
+	if (shortest_dist < radius + RobotRadius) 	return true;
 	return false;
 }
 
 bool obstacles::isInside(ofVec2f n)
 {
-	return (n.distance(location) <= radius);
+	return (n.distance(location) <= radius + RobotRadius);
 }
 #ifdef automatic
 void obstacles::applyForce(ofVec2f force)
@@ -204,6 +204,8 @@ bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
 
 	float xo = location.x;
 	float yo = location.y;
+
+	
 	float lambda = std::pow((x1 - x2), 2) + std::pow((y1 - y2), 2);
 	float t = (std::pow(x1, 2) + x2 * xo - x1*(x2 + xo) - (yo - y1)*(y1 - y2)) / lambda;
 	float shortest_dist;
@@ -216,12 +218,12 @@ bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
 		shortest_dist = std::min(d1, d2);
 	}
 
-	if (shortest_dist < radius) 	return true;
+	if (shortest_dist < radius + RobotRadius) 	return true;
 	return false;
 }
 bool movingObst::isInside(ofVec2f n)
 {
-	return (n.distance(location) <= radius);
+	return (n.distance(location) <= radius + RobotRadius);
 }
 #ifdef automatic
 void movingObst::applyForce(ofVec2f force)
@@ -300,10 +302,38 @@ ofVec2f maze::loc()
 
 bool maze::isCollide(ofVec2f p1, ofVec2f p2)
 {
+	// Need Circle(Robot) to Rectangle(Maze wall) isCollide function
 	return rect.intersects(p1,p2);
 }
 
 bool maze::isInside(ofVec2f p)
 {
+	// Need Circle(Robot) to Rectangle(Maze wall) isInside function
 	return rect.inside(p);
 }
+#if 0
+bool isCollide(ofVec2f){
+	//prepare the vectors
+	var v : Vector2d;
+	var current_box_corner : Point;
+	var center_box : Point = box1.getDot(0);
+
+	var max : Number = Number.NEGATIVE_INFINITY;
+	var box2circle : Vector2d = new Vector2d(c.x - center_box.x, c.y - center_box.y)
+		var box2circle_normalised : Vector2d = box2circle.unitVector
+
+		//get the maximum
+		for (var i : int = 1; i < 5; i++)
+		{
+			current_box_corner = box1.getDot(i)
+				v = new Vector2d(
+					current_box_corner.x - center_box.x,
+					current_box_corner.y - center_box.y);
+			var current_proj : Number = v.dotProduct(box2circle_normalised)
+
+				if (max < current_proj) max = current_proj;
+		}
+	if (box2circle.magnitude - max - c.radius > 0 && box2circle.magnitude > 0) t.text = "No Collision"
+	else t.text = "Collision"
+}
+#endif
