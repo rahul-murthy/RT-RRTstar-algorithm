@@ -3,6 +3,8 @@
 struct Nodes
 {
 	ofVec2f location;
+    ofVec2f LR, LF, RF, RR;
+    ofVec2f velocity;
 	float time;	// expected time for the robot to reach the Node
 
 	Nodes *parent, *prevParent=NULL;
