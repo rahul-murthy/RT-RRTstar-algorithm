@@ -4,7 +4,7 @@
 #include"simulationParam.h"
 #include"nodeStruct.h"
 #include"obstacle.h"
-#include"CollisionCheck.h"
+#define sizeValue 5
 
 class Robot
 {
@@ -34,6 +34,10 @@ public:
 	// Return Y cordinate
 	float y() { return location.y; }
 	// Return scanning accuracy of Robot
+    
+//    void getPoints() { return LR, LF, RF, RR; }
+    ofVec2f getPoints();
+    
 	float accu() { return accuracy; }
 	// Return scanning radius of Robot
 	float getScanRadius() { return scanRadius; }
@@ -47,6 +51,7 @@ public:
 private:
 	bool alive;
 	float scanRadius, mass, accuracy;
+    float radius;
 
 	ofColor color;
 	ofVec2f HOME, location, velocity, accelaration, maxVelocity, maxForce;
