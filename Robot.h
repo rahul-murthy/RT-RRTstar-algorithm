@@ -4,6 +4,8 @@
 #include"simulationParam.h"
 #include"nodeStruct.h"
 #include"obstacle.h"
+#include"CollisionCheck.h"
+
 class Robot
 {
 public:

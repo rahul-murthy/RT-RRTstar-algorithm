@@ -302,13 +302,13 @@ ofVec2f maze::loc()
 
 bool maze::isCollide(ofVec2f p1, ofVec2f p2)
 {
-	// Need Circle(Robot) to Rectangle(Maze wall) isCollide function
+	// Need Rectangle(Robot) to Rectangle(Maze wall) isCollide function
 	return rect.intersects(p1,p2);
 }
 
 bool maze::isInside(ofVec2f p)
 {
-	// Need Circle(Robot) to Rectangle(Maze wall) isInside function
+	// Need Rectangle(Robot) to Rectangle(Maze wall) isInside function
 	return rect.inside(p);
 }
 #if 0
