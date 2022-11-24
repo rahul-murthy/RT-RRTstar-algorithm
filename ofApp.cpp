@@ -12,7 +12,7 @@ void ofApp::setup() {
 	ofSetFrameRate(30);
 	ofSetWindowTitle("Dynamic-obstacles");
 	ofBackground(200,200,200,200);
-	myfont.loadFont("Roboto-Regular.ttf", 10);
+	myfont.loadFont(OF_TTF_SANS, 10);
 	//map = new Enviroment();
 	//car.setup();
 
