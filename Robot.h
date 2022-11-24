@@ -4,7 +4,7 @@
 #include"simulationParam.h"
 #include"nodeStruct.h"
 #include"obstacle.h"
-#define sizeValue 5
+#define sizeValue 20
 
 class Robot
 {
