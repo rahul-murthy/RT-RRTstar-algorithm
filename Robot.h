@@ -44,7 +44,7 @@ public:
 #ifdef rectangleRobot
 	// calculate the coordinates of the four vertices
 	void updateVertices();
-	ofVec2f getPoint(VertexType eVertexType);
+	ofVec2f getVertex(VertexType eVertexType);
 	// Return Location of Robot (Rectangle)
 	collisionRect getRectangle() {
 		collisionRect rec = collisionRect(location, LR, LF, RF, RR);

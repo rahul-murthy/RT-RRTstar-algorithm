@@ -313,10 +313,12 @@ void RTRRTstar::expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacl
 		u.location.y = y_n;
 	}
 
-	// Init Node u
+#ifdef rectangleRobot
+	// Set variables of Node u other than it's center location, using parent node's information.
 	if (nodes.size() != 0) {
 		InitNode(u, *v);
 	}
+#endif
 
 	if (!SMP::checkSample(u, obst)) return;
 	if (SMP::checkCollision(u, *v, obst))

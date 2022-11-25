@@ -16,14 +16,9 @@ void Robot::setup()
         //color = { ofRandom(0,255),ofRandom(0,255) ,ofRandom(0,255) };
         color = {50,145,80};
 
+#ifdef rectangleRobot
 		// Get 4 corners around the center
 		float r = robotSizeValue;
-#if 0
-		LR.set(-r + location.x, (-r * 2 + location.y));
-		LF.set(-r + location.x, (r * 2 + location.y));
-		RF.set(r + location.x, (r * 2 + location.y));
-		RR.set(r + location.x, (-r * 2 + location.y));
-#else
 		LR.set(-2*r + location.x, (-r + location.y));
 		LF.set(-2*r + location.x, (r + location.y));
 		RF.set(2*r + location.x, (r + location.y));
@@ -42,14 +37,9 @@ void Robot::setup(ofVec2f loc)
     maxForce.set(mForce, mForce);
     color = { 50,145,80 };
 
+#ifdef rectangleRobot
 	// Get 4 corners around the center
 	float r = robotSizeValue;
-#if 0
-	LR.set(-r + location.x, (-r * 2 + location.y));
-	LF.set(-r + location.x, (r * 2 + location.y));
-	RF.set(r + location.x, (r * 2 + location.y));
-	RR.set(r + location.x, (-r * 2 + location.y));
-#else
 	LR.set(-2 * r + location.x, (-r + location.y));
 	LF.set(-2 * r + location.x, (r + location.y));
 	RF.set(2 * r + location.x, (r + location.y));
@@ -88,12 +78,8 @@ void Robot::render()
     ofNoFill();
     
     ofBeginShape();
-    // Triangle Shape
-	// ofVertex(0, -r * 2);
-	// ofVertex(-r, r * 2);
-	// ofVertex(r, r * 2);
+#ifdef rectangleRobot
     // Rectangle Shape
-#if 01
 	// Y axis and X axis are reversed in render environment.
 	// -----------------------> (y)
 	//     | 
@@ -105,10 +91,10 @@ void Robot::render()
     ofVertex(r, r * 2);		// RF
 	ofVertex(-r, r * 2);		// LF
 #else
-	ofVertex(-2 * r, -r);		// LR
-	ofVertex(2 * r, -r);		//RR
-	ofVertex(2 * r, r);		// RF
-	ofVertex(-2 * r, r);		// LF
+	// Triangle Shape (only rendering. The actual robot shape is a point)
+	// ofVertex(0, -r * 2);
+	// ofVertex(-r, r * 2);
+	// ofVertex(r, r * 2);
 #endif
     ofEndShape(true);
     
@@ -186,19 +172,12 @@ void Robot::updateVertices()
     // Do the rotation metric on 4 points
     // Shift back to original spot by adding original x and y
     // Have the current location of the 4 corners
-    
+
     // Get 4 corners around origin
-#if 0
-	_LR.set(-r, -2*r);
-	_LF.set(-r, 2*r);
-	_RF.set(r, 2*r);
-	_RR.set(r, -2*r);
-#else
 	_LR.set(-2 * r, -r);
 	_LF.set(-2 * r, r);
 	_RF.set(2 * r, r);
 	_RR.set(2 * r, -r);
-#endif
     
     // Do the rotation metric
     _LR.set( (tmp1.x*_LR.x+tmp1.y*_LR.y),  (tmp2.x*_LR.x+tmp2.y*_LR.y) );
@@ -218,8 +197,7 @@ void Robot::updateVertices()
 	this->RR = _RR;
 }
 
-
-ofVec2f Robot::getPoint(VertexType eVertexType)
+ofVec2f Robot::getVertex(VertexType eVertexType)
 {
 	ofVec2f* Vertex = nullptr;
 	switch (eVertexType)
