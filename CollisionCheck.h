@@ -73,7 +73,8 @@ struct collisionCircle {
 
 class CollisionCheck {
 private:
-	static ofVec2f _getNormalizedAxis(ofVec2f &curVertex, ofVec2f &nextVertex);
+	static ofVec2f _getNormalizedVector(ofVec2f &curPt, ofVec2f &nextPt);
+	static ofVec2f _getNormPerpendicularAxis(ofVec2f &curVertex, ofVec2f &nextVertex);
 	static void _computeProjections(collisionRect &rect1, collisionRect &rect2, ofVec2f &normalizedAxis, vector <float> &projection1, vector <float> &projection2);
 	static void _computeProjections(collisionRect &rect, collisionCircle &circle, ofVec2f &normalizedAxis, vector <float> &projection1, vector <float> &projection2);
 	static bool _IsOverlapping(vector <float> &projection1, vector <float> &projection2);
