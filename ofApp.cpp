@@ -16,61 +16,82 @@ void ofApp::setup() {
 	//map = new Enviroment();
 	//car.setup();
 
-	ofVec2f w;
-	w.set(0.6 * ofGetWidth(), 0);
-	wall = new maze(w, 20, 160);
-	obstacles *ob = wall;
-	obst.push_back(ob);
 
-	w.set(0.2*ofGetWidth(), 0.8*ofGetHeight());
-	wall = new maze(w, 20, 160);
-	ob = wall;
-	obst.push_back(ob);
+	float arrMazeWallWidth[numberOfmazewall] = {
+		0.6 * ofGetWidth(),		// wall #0
+		0.1 * ofGetWidth(),		// wall #1
+		0.2 * ofGetWidth(),		// wall #2
+		0.8 * ofGetWidth(),		// wall #3
+		0.2 * ofGetWidth(),		// wall #4
+		0.86 * ofGetWidth(),		// wall #5
+		0.72 * ofGetWidth(),		// wall #6
+	};
+	float arrMazeWallHeight[numberOfmazewall] = { 
+		0,								// wall #0
+		0.45 * ofGetHeight(),		// wall #1
+		0.8 * ofGetHeight(),		// wall #2
+		0.4 * ofGetHeight(),		// wall #3
+		0.2 * ofGetHeight(),		// wall #4
+		0.1 * ofGetHeight(),		// wall #5
+		0.9 * ofGetHeight(),		// wall #6
+	};
 
-	w.set(0.1*ofGetWidth(), 0.45*ofGetHeight());
-	wall = new maze(w, 480, 40);
-	ob = wall;
-	obst.push_back(ob);
+	float arrMazeWallX[numberOfmazewall] = {
+		20,		// wall #0
+		480,	// wall #1
+		20,		// wall #2
+		200,	// wall #3
+		60,		// wall #4
+		40,		// wall #5
+		60,		// wall #6
+	};
 
-	w.set(0.8*ofGetWidth(), 0.4*ofGetHeight());
-	wall = new maze(w, 200, 180);
-	ob = wall;
-	obst.push_back(ob);
+	float arrMazeWallY[numberOfmazewall] = {
+		160,	// wall #0
+		40,		// wall #1
+		160,	// wall #2
+		180,	// wall #3
+		40,		// wall #4
+		60,		// wall #5
+		40,		// wall #6
+	};
 
-	w.set(0.2 * ofGetWidth(), 0.2 * ofGetHeight());
-	wall = new maze(w, 40, 40);
-	ob = wall;
-	obst.push_back(ob);
+	obstacles *ob;
+	for (int i = 0; i < numberOfmazewall; i++)
+	{
+		ofVec2f w;
+		w.set(arrMazeWallWidth[i], arrMazeWallHeight[i]);
+		wall = new maze(w, arrMazeWallX[i], arrMazeWallY[i]);
+		ob = wall;
+		obst.push_back(ob);
+	}
 
-	w.set(0.86 * ofGetWidth(), 0.1 * ofGetHeight());
-	wall = new maze(w, 40, 40);
-	ob = wall;
-	obst.push_back(ob);
-
-	w.set(0.72 * ofGetWidth(), 0.9 * ofGetHeight());
-	wall = new maze(w, 40, 40);
-	ob = wall;
-	obst.push_back(ob);
-
+#if (numberOfstaticObst != 0)
+	// obstacles' info
+	ofVec2f arrObsLocation[numberOfstaticObst] = { {(float)0.5 * ofGetWidth(), (float)0.7 * ofGetHeight()} };
+	float arrObsRadius[numberOfstaticObst] = { 50 };
 
 	for (unsigned int i = 0; i < numberOfstaticObst; i++)
 	{
 		// static obstacles
-		obstacles *ob = new obstacles();
+		ob = new obstacles(arrObsLocation[i], arrObsRadius[i]);
 		obst.push_back(ob);
 	}
+#endif
 
+#if (numberOfmovObst != 0)
 	// moving obstacles' info
-	ofVec2f arrLocation[numberOfmovObst] = { {90, 30} };
-	ofVec2f arrVector[numberOfmovObst] = { {-1, 0} };
-
+	ofVec2f arrMovObsLocation[numberOfmovObst] = { {90, 30} };
+	ofVec2f arrMovObsVector[numberOfmovObst] = { {-1, 0} };
+	
 	for (unsigned int i = 0; i < numberOfmovObst; i++)
 	{
 		// moving obstacles
-		OBST = new movingObst(arrLocation[i], arrVector[i]);
+		OBST = new movingObst(arrMovObsLocation[i], arrMovObsVector[i]);
 		obstacles *ob = OBST;
 		obst.push_back(ob);
 	}
+#endif
 
 	cout << "Obst size: " << obst.size() << endl;
 

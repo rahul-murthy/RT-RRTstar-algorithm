@@ -75,7 +75,7 @@ inline void Enviroment::setup(ofVec2f _start)
 	gui.add(guiEpsilon.setup("Epsilon",epsilon , 5, 150));
 	home = _start;
 
-	Nodes start(home.x, home.y, 0);
+	Nodes start(home.x, home.y, 0, robotSizeValue);
 	this->nodes.push_back(start);
 
 	SMP::root = &(this->nodes.front());
@@ -94,6 +94,7 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	//InformedRRTstar::usingInformedRRTstar = true;
 
 	//RTRRTstar-
+
 	if (car->getLocation().distance(SMP::goal) < converge)
 		planner = false;
 
@@ -111,10 +112,13 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 		path = rtrrtstar.currPath;
 		rtrrtstar.currPath.clear();
 	}
-
 	for (auto it : obst)
 	{
+#ifdef rectangleRobot
+		if (it->isInside(car->getRectangle()))
+#else
 		if (it->isInside(car->getLocation()))
+#endif
 		{
 			// [Nov12]	Rather than using an infinite loop,
 			//				Should pass the "collision occured" information to the Open Framework and inform the user.

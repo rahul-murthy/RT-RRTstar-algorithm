@@ -22,6 +22,10 @@ private:
 	void expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacles*>& obst);
 	void updateNextBestPath();
 	Nodes sample();
+#ifdef rectangleRobot
+	void InitNode(Nodes &sampledNode, Nodes &closestNode);
+	//Nodes sample(Robot& robot);
+#endif
 	Nodes* getClosestNeighbour(Nodes u, std::list<Nodes>& nodes);
 	void addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const std::list<obstacles*>& obst);
 	void rewireRandomNode(const list<obstacles*> &obst, std::list<Nodes> &nodes);

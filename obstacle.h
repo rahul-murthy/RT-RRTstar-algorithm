@@ -1,10 +1,13 @@
 #pragma once
 #include"simulationParam.h"
+#include "CollisionCheck.h"
+
 class obstacles
 {
 public:
 	obstacles();
 	obstacles(ofVec2f loc);
+	obstacles(ofVec2f loc, float _rad);
 	~obstacles();
 #ifdef automatic
 	virtual void move(std::list<obstacles*> obst);
@@ -19,7 +22,13 @@ public:
 	float getY() { return location.y;}
 	virtual  bool isCircle() { return true; }
 	virtual bool isCollide(ofVec2f, ofVec2f);
+#ifdef rectangleRobot
+	// robot(rectangle) collides with this static obstacle(circle)
+	virtual bool isInside(collisionRect rec);
+#else
+	// robot(point) collides with this static obstacle(circle)
 	virtual bool isInside(ofVec2f);
+#endif
 	float mass;
 private:
 	ofVec2f location,velocity,accelaration;
@@ -46,7 +55,13 @@ public:
 	float rad() { return this->radius; }
 	bool isCircle() { return true; }
 	bool isCollide(ofVec2f, ofVec2f);
-	bool isInside(ofVec2f);
+#ifdef rectangleRobot
+	// robot(rectangle) collides with this moving obstacle(circle)
+	bool isInside(collisionRect rec);
+#else
+	// robot(point) collides with this moving obstacle(circle)
+	bool isInside(ofVec2f n);
+#endif
 	void applyForce(ofVec2f force);
 	void update();
 	ofVec2f repulsive(obstacles *obst);
@@ -73,7 +88,13 @@ public:
 	ofVec2f loc();
 	bool isCircle() { return false; }
 	bool isCollide(ofVec2f p1, ofVec2f p2);
+#ifdef rectangleRobot
+	// robot(rectangle) collides with this maze(rectangle)
+	bool isInside(collisionRect collRec);
+#else
+	// robot(point) collides with this moving obstacle(rectangle)
 	bool isInside(ofVec2f p);
+#endif
 private:
 	ofColor color;
 	ofVec2f location;

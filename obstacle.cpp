@@ -18,6 +18,14 @@ obstacles::obstacles(ofVec2f loc)
 	mass = 3.14*radius*radius;
 }
 
+obstacles::obstacles(ofVec2f loc, float _rad)
+{
+	location = loc;
+	radius = _rad;
+	color = { 200,50,10 };
+	mass = 3.14*radius*radius;
+}
+
 obstacles::~obstacles()
 {
 }
@@ -67,10 +75,19 @@ bool obstacles::isCollide(ofVec2f n1, ofVec2f n2)
 	return false;
 }
 
+#ifdef rectangleRobot
+bool obstacles::isInside(collisionRect rec)
+{
+	collisionCircle circle = collisionCircle(this->loc(), this->rad());
+	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
+}
+#else	// when robot is a point with no area.
 bool obstacles::isInside(ofVec2f n)
 {
 	return (n.distance(location) <= radius + RobotRadius);
 }
+#endif
+
 #ifdef automatic
 void obstacles::applyForce(ofVec2f force)
 {
@@ -221,10 +238,20 @@ bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
 	if (shortest_dist < radius + RobotRadius) 	return true;
 	return false;
 }
+
+#ifdef rectangleRobot
+bool movingObst::isInside(collisionRect rec)
+{
+	collisionCircle circle = collisionCircle(this->loc(), this->rad());
+	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
+}
+#else	// when robot is a point with no area.
 bool movingObst::isInside(ofVec2f n)
 {
 	return (n.distance(location) <= radius + RobotRadius);
 }
+#endif
+
 #ifdef automatic
 void movingObst::applyForce(ofVec2f force)
 {
@@ -305,35 +332,28 @@ bool maze::isCollide(ofVec2f p1, ofVec2f p2)
 	// Need Rectangle(Robot) to Rectangle(Maze wall) isCollide function
 	return rect.intersects(p1,p2);
 }
+#ifdef rectangleRobot
+bool maze::isInside(collisionRect collRec)
+{
+	//  _LR, ofVec2f _LF, ofVec2f _RF, ofVec2f _RR
+	ofVec3f tmpTL = rect.getTopLeft();
+	ofVec3f tmpBL = rect.getBottomLeft();
+	ofVec3f tmpBR = rect.getBottomRight();
+	ofVec3f tmpTR = rect.getTopRight();
+	ofVec3f tmpCenter = rect.getCenter();
+	ofVec2f LR = { tmpTL.x, tmpTL.y };
+	ofVec2f LF = { tmpBL.x, tmpBL.y };
+	ofVec2f RF = { tmpBR.x, tmpBR.y };
+	ofVec2f RR = { tmpTR.x, tmpTR.y };
+	ofVec2f mazeCenter = { tmpCenter.x, tmpCenter.y};
 
+	collisionRect mazeRec = collisionRect(mazeCenter, LR, LF, RF, RR);
+	return CollisionCheck::IsCollision_RectToRect(collRec, mazeRec);
+}
+#else	// when robot is a point with no area.
 bool maze::isInside(ofVec2f p)
 {
 	// Need Rectangle(Robot) to Rectangle(Maze wall) isInside function
 	return rect.inside(p);
-}
-#if 0
-bool isCollide(ofVec2f){
-	//prepare the vectors
-	var v : Vector2d;
-	var current_box_corner : Point;
-	var center_box : Point = box1.getDot(0);
-
-	var max : Number = Number.NEGATIVE_INFINITY;
-	var box2circle : Vector2d = new Vector2d(c.x - center_box.x, c.y - center_box.y)
-		var box2circle_normalised : Vector2d = box2circle.unitVector
-
-		//get the maximum
-		for (var i : int = 1; i < 5; i++)
-		{
-			current_box_corner = box1.getDot(i)
-				v = new Vector2d(
-					current_box_corner.x - center_box.x,
-					current_box_corner.y - center_box.y);
-			var current_proj : Number = v.dotProduct(box2circle_normalised)
-
-				if (max < current_proj) max = current_proj;
-		}
-	if (box2circle.magnitude - max - c.radius > 0 && box2circle.magnitude > 0) t.text = "No Collision"
-	else t.text = "Collision"
 }
 #endif

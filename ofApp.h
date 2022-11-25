@@ -4,6 +4,9 @@
 #include "Enviroment.h"
 //#include "Robot.h"
 
+#define _CRT_SECURE_NO_WARNINGS
+#define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
+
 class ofApp : public ofBaseApp{
 
 	public:

@@ -4,7 +4,8 @@
 #include"simulationParam.h"
 #include"nodeStruct.h"
 #include"obstacle.h"
-#define sizeValue 20
+#include "CollisionCheck.h"
+#define robotSizeValue 20
 
 class Robot
 {
@@ -34,17 +35,25 @@ public:
 	// Return Y cordinate
 	float y() { return location.y; }
 	// Return scanning accuracy of Robot
-    
-//    void getPoints() { return LR, LF, RF, RR; }
-    ofVec2f getPoints();
-    
 	float accu() { return accuracy; }
 	// Return scanning radius of Robot
 	float getScanRadius() { return scanRadius; }
-	// Return Location of Robot
+
+	// Return Location of Robot (point)
 	ofVec2f getLocation() { return location; }
+#ifdef rectangleRobot
+	// calculate the coordinates of the four vertices
+	void updateVertices();
+	ofVec2f getPoint(VertexType eVertexType);
+	// Return Location of Robot (Rectangle)
+	collisionRect getRectangle() {
+		collisionRect rec = collisionRect(location, LR, LF, RF, RR);
+		return rec;
+	}
+#endif
 	// Return Color of Robot
 	ofColor getColor() { return color; }
+	ofVec2f getMaxVelocity() { return maxVelocity; }
 	void fillEnviroment(const list<obstacles*> obst,list<Nodes> &node);
 	void updateEnviroment(list<Nodes> &node, obstacles *obst);
 	//--------------------------------------------------------------Variables
@@ -55,6 +64,7 @@ private:
 
 	ofColor color;
 	ofVec2f HOME, location, velocity, accelaration, maxVelocity, maxForce;
+	ofVec2f LR, LF, RF, RR;
 	ofPolyline line;
 	ofPoint pt;
 };

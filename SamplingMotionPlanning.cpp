@@ -100,9 +100,19 @@ bool SMP::checkCollision(Nodes n1, Nodes n2, list<obstacles*> obst)
 
 bool SMP::checkSample(Nodes n,  list<obstacles*> obst)
 {
+
+#ifdef rectangleRobot
+	collisionRect *rec;
+	for (auto i : obst) {
+		rec = new collisionRect(n.location, n.LR, n.LF, n.RF, n.RR);
+		if (i->isInside(*rec)) return false;
+		delete rec;
+	}
+#else
 	for (auto i : obst) {
 			if (i->isInside(n.location)) return false;		
 	}
+#endif
 	return true;
 }
 
@@ -165,7 +175,7 @@ void RRTstar::nextIter(std::list<Nodes>& nodes,list<obstacles*> obst, Nodes* u_)
 
 	// Bring the iterator to initial position again
 	it = safeNeighbours.begin();
-	while (it != safeNeighbours.end())
+	while (it != safeNeighbours.end())			// This is where the code gets trapped in an infinite loop!!!
 	{
 		float dist = u.costToStart + u.location.distance((*it)->location);
 		if ((*it)->costToStart > dist)
@@ -303,6 +313,11 @@ void RTRRTstar::expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacl
 		u.location.y = y_n;
 	}
 
+	// Init Node u
+	if (nodes.size() != 0) {
+		InitNode(u, *v);
+	}
+
 	if (!SMP::checkSample(u, obst)) return;
 	if (SMP::checkCollision(u, *v, obst))
 	{
@@ -389,8 +404,45 @@ Nodes RTRRTstar::sample()
 	{
 		return SMP::sampler();
 	}
-
 }
+
+#ifdef rectangleRobot
+void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
+{
+	ofVec2f closestCenter = closestNode.location;
+	ofVec2f newNodeCenter = newNode.location;
+	ofVec2f velocity = { newNodeCenter.x - closestCenter.x, newNodeCenter.y - closestCenter.y };
+	velocity = (velocity.normalized() *mVal);
+
+	float theta = ofRadToDeg(atan2(velocity.y, velocity.x) + PI / 2);
+	float cos_theta = cos(theta);
+	float sin_theta = sin(theta);
+
+	float r = robotSizeValue;
+
+	newNode.velocity = velocity;
+
+	newNode.LR = { -r, -r * 2 };
+	newNode.LF = { -r, r * 2 };
+	newNode.RF = { r, r * 2 };
+	newNode.RR = { r, -r * 2 };
+
+	newNode.LR.rotate(theta);
+	newNode.LF.rotate(theta);
+	newNode.RF.rotate(theta);
+	newNode.RR.rotate(theta);
+
+	newNode.LR += newNodeCenter;
+	newNode.LF += newNodeCenter;
+	newNode.RF += newNodeCenter;
+	newNode.RR += newNodeCenter;
+
+	float dist = closestCenter.distance(newNodeCenter);
+	float delta_t = dist / mVal;
+
+	newNode.time = closestNode.time + delta_t;
+}
+#endif
 
 Nodes* RTRRTstar::getClosestNeighbour(Nodes u, std::list<Nodes>& nodes) //Using all the nodes for the time being
 {

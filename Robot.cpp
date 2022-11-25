@@ -3,7 +3,7 @@
 void Robot::setup()
 {
 //        alive = true; mass = 5.0; scanRadius = sensorRadius; accuracy = accur;
-        alive = true; mass = 5.0; scanRadius = 20; accuracy = accur;
+        alive = true; mass = 5.0; scanRadius = robotSizeValue; accuracy = accur;
         //battery = 100;
         //float x = ofRandom(0, ofGetWindowWidth()); float y = ofRandom(0, ofGetWindowHeight());`
         location.set(0.0,0.0);
@@ -15,6 +15,20 @@ void Robot::setup()
         maxForce.set(mForce, mForce);
         //color = { ofRandom(0,255),ofRandom(0,255) ,ofRandom(0,255) };
         color = {50,145,80};
+
+		// Get 4 corners around the center
+		float r = robotSizeValue;
+#if 0
+		LR.set(-r + location.x, (-r * 2 + location.y));
+		LF.set(-r + location.x, (r * 2 + location.y));
+		RF.set(r + location.x, (r * 2 + location.y));
+		RR.set(r + location.x, (-r * 2 + location.y));
+#else
+		LR.set(-2*r + location.x, (-r + location.y));
+		LF.set(-2*r + location.x, (r + location.y));
+		RF.set(2*r + location.x, (r + location.y));
+		RR.set(2*r + location.x, (-r + location.y));
+#endif
 }
 
 void Robot::setup(ofVec2f loc)
@@ -27,6 +41,20 @@ void Robot::setup(ofVec2f loc)
     maxVelocity.set(mVal, mVal);
     maxForce.set(mForce, mForce);
     color = { 50,145,80 };
+
+	// Get 4 corners around the center
+	float r = robotSizeValue;
+#if 0
+	LR.set(-r + location.x, (-r * 2 + location.y));
+	LF.set(-r + location.x, (r * 2 + location.y));
+	RF.set(r + location.x, (r * 2 + location.y));
+	RR.set(r + location.x, (-r * 2 + location.y));
+#else
+	LR.set(-2 * r + location.x, (-r + location.y));
+	LF.set(-2 * r + location.x, (r + location.y));
+	RF.set(2 * r + location.x, (r + location.y));
+	RR.set(2 * r + location.x, (-r + location.y));
+#endif
 }
 
 void Robot::update()
@@ -42,7 +70,7 @@ void Robot::update()
 void Robot::render()
 {
 
-    int r = sizeValue;
+    float r = robotSizeValue;
     ofEnableAlphaBlending();
     ofFill();
     ofSetColor(color);
@@ -57,18 +85,31 @@ void Robot::render()
     ofPushMatrix();
     ofTranslate(location.x,location.y);
     ofRotate(ofRadToDeg(atan2(velocity.y, velocity.x) + PI / 2));
-    ofFill();
+    ofNoFill();
     
     ofBeginShape();
     // Triangle Shape
-//    ofVertex(0, -r * 2);
-//    ofVertex(-r, r * 2);
-//    ofVertex(r, r * 2);
+	// ofVertex(0, -r * 2);
+	// ofVertex(-r, r * 2);
+	// ofVertex(r, r * 2);
     // Rectangle Shape
-    ofVertex(-r, -r * 2);  // LR
-    ofVertex(-r, r * 2);  // LF
-    ofVertex(r, r * 2);  // RF
-    ofVertex(r, -r * 2);  //RR
+#if 01
+	// Y axis and X axis are reversed in render environment.
+	// -----------------------> (y)
+	//     | 
+	//     |
+	//     |
+	// (x) v 
+    ofVertex(-r, -r * 2);		// LR
+	ofVertex(r, -r * 2);		// RR
+    ofVertex(r, r * 2);		// RF
+	ofVertex(-r, r * 2);		// LF
+#else
+	ofVertex(-2 * r, -r);		// LR
+	ofVertex(2 * r, -r);		//RR
+	ofVertex(2 * r, r);		// RF
+	ofVertex(-2 * r, r);		// LF
+#endif
     ofEndShape(true);
     
     ofPopMatrix();
@@ -126,19 +167,20 @@ void Robot::updateEnviroment(list<Nodes>& node,obstacles *obst)
         }
         it++;
     }
-    ofVec2f LR, LF, RF, RR = getPoints();
+	// updateVertices();
 }
 
-ofVec2f Robot::getPoints()
+#ifdef rectangleRobot
+void Robot::updateVertices()
 {
-    ofVec2f origin, LR, LF, RF, RR;
+    ofVec2f _LR, _LF, _RF, _RR;
     int theta = ofRadToDeg(atan2(velocity.y, velocity.x) + PI / 2);
     
     ofVec2f tmp1, tmp2;
     tmp1.set(cos(theta), -sin(theta));
     tmp2.set(sin(theta), cos(theta));
     
-    int r = sizeValue;
+    float r = robotSizeValue;
     // Set origin
     // Get 4 corners
     // Do the rotation metric on 4 points
@@ -146,26 +188,60 @@ ofVec2f Robot::getPoints()
     // Have the current location of the 4 corners
     
     // Get 4 corners around origin
-//    origin.set(0.0, 0.0);
-    LR.set(-r, -r*2);
-    LF.set(-r, r*2);
-    RF.set(r, r*2);
-    RR.set(r, -r*2);
+#if 0
+	_LR.set(-r, -2*r);
+	_LF.set(-r, 2*r);
+	_RF.set(r, 2*r);
+	_RR.set(r, -2*r);
+#else
+	_LR.set(-2 * r, -r);
+	_LF.set(-2 * r, r);
+	_RF.set(2 * r, r);
+	_RR.set(2 * r, -r);
+#endif
     
     // Do the rotation metric
-    LR.set( (tmp1.x*LR.x+tmp1.y*LR.y),  (tmp2.x*LR.x+tmp2.y*LR.y) );
-    LF.set( (tmp1.x*LF.x+tmp1.y*LF.y),  (tmp2.x*LF.x+tmp2.y*LF.y) );
-    RF.set( (tmp1.x*RF.x+tmp1.y*RF.y),  (tmp2.x*RF.x+tmp2.y*RF.y) );
-    RR.set( (tmp1.x*RR.x+tmp1.y*RR.y),  (tmp2.x*RR.x+tmp2.y*RR.y) );
+    _LR.set( (tmp1.x*_LR.x+tmp1.y*_LR.y),  (tmp2.x*_LR.x+tmp2.y*_LR.y) );
+    _LF.set( (tmp1.x*_LF.x+tmp1.y*_LF.y),  (tmp2.x*_LF.x+tmp2.y*_LF.y) );
+    _RF.set( (tmp1.x*_RF.x+tmp1.y*_RF.y),  (tmp2.x*_RF.x+tmp2.y*_RF.y) );
+    _RR.set( (tmp1.x*_RR.x+tmp1.y*_RR.y),  (tmp2.x*_RR.x+tmp2.y*_RR.y) );
     
     // Shift back
-    LR.set(LR.x+location.x, LR.y+location.y);
-    LF.set(LF.x+location.x, LF.y+location.y);
-    RF.set(RF.x+location.x, RF.y+location.y);
-    RR.set(RR.x+location.x, RR.y+location.y);
-    
-    return LR, LF, RF, RR;
+    _LR.set(_LR.x+location.x, _LR.y+location.y);
+    _LF.set(_LF.x+location.x, _LF.y+location.y);
+    _RF.set(_RF.x+location.x, _RF.y+location.y);
+    _RR.set(_RR.x+location.x, _RR.y+location.y);
+
+	this->LR = _LR;
+	this->LF = _LF;
+	this->RF = _RF;
+	this->RR = _RR;
 }
+
+
+ofVec2f Robot::getPoint(VertexType eVertexType)
+{
+	ofVec2f* Vertex = nullptr;
+	switch (eVertexType)
+	{
+		case VertexType::LR:
+			Vertex = &LR;
+			break;
+		case VertexType::LF:
+			Vertex = &LF;
+			break;
+		case VertexType::RF:
+			Vertex = &RF;
+			break;
+		case VertexType::RR:
+			Vertex = &RR;
+			break;
+		default:
+			break;
+	}
+	return *Vertex;
+}
+#endif
 
 //
 //inline void quadCopter::fly(Nodes *& nodes)
