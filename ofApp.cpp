@@ -18,22 +18,22 @@ void ofApp::setup() {
 
 
 	float arrMazeWallWidth[numberOfmazewall] = {
-		0.6 * ofGetWidth(),		// wall #0
-		0.1 * ofGetWidth(),		// wall #1
-		0.2 * ofGetWidth(),		// wall #2
-		0.8 * ofGetWidth(),		// wall #3
-		0.2 * ofGetWidth(),		// wall #4
-		0.86 * ofGetWidth(),		// wall #5
-		0.72 * ofGetWidth(),		// wall #6
+		(float)0.6 * ofGetWidth(),		// wall #0
+        (float)0.1 * ofGetWidth(),		// wall #1
+        (float)0.2 * ofGetWidth(),		// wall #2
+        (float)0.8 * ofGetWidth(),		// wall #3
+        (float)0.2 * ofGetWidth(),		// wall #4
+        (float)0.86 * ofGetWidth(),		// wall #5
+        (float)0.72 * ofGetWidth(),		// wall #6
 	};
 	float arrMazeWallHeight[numberOfmazewall] = { 
 		0,								// wall #0
-		0.45 * ofGetHeight(),		// wall #1
-		0.8 * ofGetHeight(),		// wall #2
-		0.4 * ofGetHeight(),		// wall #3
-		0.2 * ofGetHeight(),		// wall #4
-		0.1 * ofGetHeight(),		// wall #5
-		0.9 * ofGetHeight(),		// wall #6
+        (float)0.45 * ofGetHeight(),	// wall #1
+        (float)0.8 * ofGetHeight(),		// wall #2
+        (float)0.4 * ofGetHeight(),		// wall #3
+        (float)0.2 * ofGetHeight(),		// wall #4
+        (float)0.1 * ofGetHeight(),		// wall #5
+        (float)0.9 * ofGetHeight(),		// wall #6
 	};
 
 	float arrMazeWallX[numberOfmazewall] = {
