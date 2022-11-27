@@ -9,7 +9,7 @@
 const float inf = std::numeric_limits<float>::infinity();
 //--------------------------------------------------------------ofApp.h
 #define numberOfstaticObst 2
-#define numberOfmovObst 0
+#define numberOfmovObst 1
 #define numberOfobst (numberOfstaticObst+numberOfmovObst)
 #define numberOfmazewall 7
 //--------------------------------------------------------------obstracle.h

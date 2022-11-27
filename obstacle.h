@@ -35,6 +35,7 @@ private:
 	float radius;
 	ofColor color;
 };
+
 class movingObst : public obstacles
 {
 public:
@@ -64,8 +65,10 @@ public:
 #endif
 	void applyForce(ofVec2f force);
 	void update();
+    double getNextChangeTime(double time);
 	ofVec2f repulsive(obstacles *obst);
 private:
+    double curr_time;
 	ofVec2f location, accelaration;
 	float radius;
 	ofColor color;

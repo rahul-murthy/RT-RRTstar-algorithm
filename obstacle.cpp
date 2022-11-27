@@ -1,4 +1,6 @@
 #include "obstacle.h"
+#include <map>
+#include <ctime>
 
 obstacles::obstacles()
 {
@@ -127,6 +129,7 @@ movingObst::movingObst()
 	radius = 25;
 	mass = 3.14*radius*radius;
 	color = { 200,100,20 };
+    curr_time = 0;
 }
 
 movingObst::movingObst(ofVec2f loc)
@@ -139,6 +142,7 @@ movingObst::movingObst(ofVec2f loc)
 	radius = 25;
 	mass = 3.14*radius*radius;
 	color = { 200,100,20 };
+    curr_time = 0;
 }
 
 movingObst::movingObst(ofVec2f loc, ofVec2f vel)
@@ -151,6 +155,7 @@ movingObst::movingObst(ofVec2f loc, ofVec2f vel)
 	radius = 25;
 	mass = 3.14*radius*radius;
 	color = { 200,100,20 };
+    curr_time = 0;
 }
 
 movingObst::~movingObst()
@@ -190,18 +195,46 @@ void movingObst::move(char key)
 #ifdef automatic
 void movingObst::move(std::list<obstacles*> obst)
 {
-	ofVec2f temp, maxForce,maxVelocity;
-	for (auto i : obst) {
+	ofVec2f temp, maxForce, maxVelocity;
+    
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    curr_time = ltm->tm_sec;
+    ofVec3f nextChangeTime;
+    nextChangeTime.set(15, 30, 45);
+    
+    /// Know exactly what this code is doing ------------------------------------------------------------------------------------------------------------------------------------------
+    /// To set the velocity the right way
+    for (auto i : obst) {
 		ofVec2f dir = location - i->loc();
 		float accel = 1/ (dir.length() *dir.length());
 		temp += accel* dir.normalized();
 	}
 	maxForce.set(mForce, mForce);
 	temp = (temp.length() <= maxForce.length()) ? temp : (temp.normalized() *10*mForce);
-	velocity = velocity + temp;
-	maxVelocity.set(maxVal, maxVal);
-	velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
+//	velocity = velocity + temp;
+//	maxVelocity.set(maxVal, maxVal);
+//	velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
+    // ------------------------------------------------------------------------------------------------------
+    
+    
+    
+    if (curr_time >= nextChangeTime.x && curr_time < nextChangeTime.y) {
+//      figure out how to actually set velocity
+        velocity += accelaration;
+        accelaration.set(0, 0); // Don't think this needs to be here
+    }
+    if (curr_time >= nextChangeTime.y && curr_time < nextChangeTime.z) {
+        velocity += accelaration / 10;
+        accelaration.set(0, 0);
+    }
+    if (curr_time >= nextChangeTime.z) {
+        velocity += accelaration * 10;
+        accelaration.set(0, 0);
+    }
 
+    
+    // Keeps it inside the environment
 	if (location.y+radius >= ofGetHeight() || location.y- radius <= 0) {
 		velocity.y = velocity.y*-1;
 	}
@@ -257,11 +290,67 @@ void movingObst::applyForce(ofVec2f force)
 {
 	accelaration += force / mass;
 }
+
 void movingObst::update()
 {
-	velocity += accelaration;
-	location += velocity;
-	accelaration.set(0, 0);
+//	velocity += accelaration;
+//	location += velocity;
+//	accelaration.set(0, 0);
+    
+//    double nextChangeTime = 0.0;
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    curr_time = ltm->tm_sec;
+    
+    ofVec3f nextChangeTime;
+    nextChangeTime.set(15, 30, 45);
+//    double nextChangeTime = getNextChangeTime(time);
+//    ofVec2f newVelocity;
+    if (curr_time >= nextChangeTime.x && curr_time < nextChangeTime.y) {
+//        velocity.set(1, 0);
+        velocity += accelaration;
+        location += velocity; // update location
+        accelaration.set(0, 0);
+    }
+    if (curr_time >= nextChangeTime.y && curr_time < nextChangeTime.z) {
+        velocity += accelaration / 10;
+        location += velocity; // update location
+        accelaration.set(0, 0);
+    }
+    if (curr_time >= nextChangeTime.z) {
+        velocity += accelaration * 10;
+        location += velocity; // update location
+        accelaration.set(0, 0);
+    }
+//    curr_time += 1;
+    
+//    nextChangeTime = ;// get next time change
+//    nextChangeTime = getNextChangeTime(arrChanges);
+
+}
+
+double movingObst::getNextChangeTime(double time)
+{
+    // Function for picking a velocity at a certain time
+    ofVec2f vel;
+    if (time == 10) {
+        vel.set(1, 0);
+    }
+    else if (time == 20) {
+        vel.set(1, 0);
+    }
+    else if (time == 200) {
+        vel.set(0, -1);
+    }
+//    return vel;
+//    std::map<double, ofVec2f> arrChanges =
+//    {   // time // velocity
+//        { 10,     {1, 0}},
+//        { 20,     {0, 1}},
+//        { 200,    {0, -1}},
+//    };
+    
+    
 }
 
 ofVec2f movingObst::repulsive(obstacles *obst)

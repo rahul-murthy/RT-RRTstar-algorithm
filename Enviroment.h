@@ -124,11 +124,13 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 			//				Should pass the "collision occured" information to the Open Framework and inform the user.
 //			while (true);
 //            exit( 3 );
+#if 0
             AllocConsole();
             if (MessageBox(FindWindowA("ConsoleWindowClass", NULL), L"Hi, Do you want to exit?", L"Bye!!", MB_HELP| MB_CANCELTRYCONTINUE | MB_ICONHAND | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDCANCEL)
             {
                 exit( 3 );
             }
+#endif
 
 		}
 	}
