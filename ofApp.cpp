@@ -1,4 +1,5 @@
 #include "ofApp.h"
+#include "CollisionCheck.h"
 
 //--------------------------------------------------------------
 void ofApp::setup() {
@@ -38,7 +39,7 @@ void ofApp::setup() {
 
 	float arrMazeWallX[numberOfmazewall] = {
 		20,		// wall #0
-		480,	// wall #1
+		700,	// wall #1
 		20,		// wall #2
 		200,	// wall #3
 		60,		// wall #4
@@ -57,7 +58,7 @@ void ofApp::setup() {
 	};
 
 	obstacles *ob;
-	for (int i = 0; i < numberOfmazewall; i++)
+	for (int i = 0; i < 3/*numberOfmazewall*/; i++)
 	{
 		ofVec2f w;
 		w.set(arrMazeWallWidth[i], arrMazeWallHeight[i]);
@@ -81,13 +82,13 @@ void ofApp::setup() {
 
 #if (numberOfmovObst != 0)
 	// moving obstacles' info
-	ofVec2f arrMovObsLocation[numberOfmovObst] = { {90, 30} };
-	ofVec2f arrMovObsVector[numberOfmovObst] = { {-1, 0} };
+	ofVec2f arrMovObsLocation[numberOfmovObst] = { {300, (float)0.35 * ofGetHeight()} };
+	ofVec2f arrMovObsVector[numberOfmovObst] = { {-0.5, 0} };
 	
 	for (unsigned int i = 0; i < numberOfmovObst; i++)
 	{
 		// moving obstacles
-		OBST = new movingObst(arrMovObsLocation[i], arrMovObsVector[i]);
+		OBST = new movingObst(arrMovObsLocation[i], arrMovObsVector[i], 50);
 		obstacles *ob = OBST;
 		obst.push_back(ob);
 	}
@@ -161,6 +162,61 @@ void ofApp::draw(){
 	sprintf(time, "Draw rate: %f", drawTime);
 	myfont.drawString(time, ofGetWindowWidth() - 140, ofGetWindowHeight() - 740);
 
+	if (car != NULL)
+	{
+		// Robot Information
+		sprintf(time, "LR: (%f, %f)", car->getVertex(VertexType::LR).x, car->getVertex(VertexType::LR).y);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 725);
+		sprintf(time, "RR: (%f, %f)", car->getVertex(VertexType::RR).x, car->getVertex(VertexType::RR).y);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 710);
+		sprintf(time, "RF: (%f, %f)", car->getVertex(VertexType::RF).x, car->getVertex(VertexType::RF).y);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 695);
+		sprintf(time, "LF: (%f, %f)", car->getVertex(VertexType::LF).x, car->getVertex(VertexType::LF).y);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 680);
+		sprintf(time, "Center: (%f, %f)", car->getLocation().x, car->getLocation().y);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 665);
+		ofVec2f curOrientation = {
+			(car->getVertex(VertexType::LF).x - car->getVertex(VertexType::LR).x),
+			(car->getVertex(VertexType::LF).y - car->getVertex(VertexType::LR).y)
+		};
+		curOrientation = curOrientation.normalized();
+		sprintf(time, "Current Ori: <%f, %f>", curOrientation.x, curOrientation.y);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 650);
+
+		float theta = ofRadToDeg(atan2(curOrientation.y, curOrientation.x));
+		sprintf(time, "Theta axisX: %f", theta);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 635);
+
+
+		// Rendered position
+		sprintf(time, "Rendered Position");
+		myfont.drawString(time, 10, ofGetWindowHeight() - 740);
+		sprintf(time, "LR: (%f, %f)", car->render_LR.x, car->render_LR.y);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 725);
+		sprintf(time, "RR: (%f, %f)", car->render_RR.x, car->render_RR.y);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 710);
+		sprintf(time, "RF: (%f, %f)", car->render_RF.x, car->render_RF.y);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 695);
+		sprintf(time, "LF: (%f, %f)", car->render_LF.x, car->render_LF.y);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 680);
+		sprintf(time, "Center: (%f, %f)", car->render_Center.x, car->render_Center.y);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 665);
+		sprintf(time, "Desired Ori(vel): <%f, %f>", car->getVelocity().x, car->getVelocity().y);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 650);
+
+		curOrientation = {
+			(car->render_LF.x - car->render_LR.x),
+			(car->render_LF.y - car->render_LR.y)
+		};
+		curOrientation = curOrientation.normalized();
+		sprintf(time, "Desired Ori(pos): <%f, %f>", curOrientation.x, curOrientation.y);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 635);
+		theta = ofRadToDeg(atan2(curOrientation.y, curOrientation.x));
+		sprintf(time, "Theta axisX: %f", theta);
+		myfont.drawString(time, 10, ofGetWindowHeight() - 620);
+		sprintf(time, "Current Time: %f", std::chrono::steady_clock::now());
+		myfont.drawString(time, 10, ofGetWindowHeight() - 605);
+	}
 #endif // DEBUG
 }
 

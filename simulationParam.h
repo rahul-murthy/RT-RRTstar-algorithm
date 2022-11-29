@@ -9,7 +9,7 @@
 const float inf = std::numeric_limits<float>::infinity();
 //--------------------------------------------------------------ofApp.h
 #define numberOfstaticObst 1
-#define numberOfmovObst 0
+#define numberOfmovObst 1
 #define numberOfobst (numberOfstaticObst+numberOfmovObst)
 #define numberOfmazewall 7
 //--------------------------------------------------------------obstracle.h
@@ -31,6 +31,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #else
 #define RobotRadius 0
 #define rectangleRobot
+//#define predictMovement
 #endif
 //-------------------------------------------------------------Genral
 #define startx 500

@@ -94,6 +94,9 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	//InformedRRTstar::usingInformedRRTstar = true;
 
 	//RTRRTstar-
+	ofColor redColor = { 145,50,80 };
+	ofColor greenColor = { 50,145,80 };
+	bool isInside = false;
 
 	if (car->getLocation().distance(SMP::goal) < converge)
 		planner = false;
@@ -115,7 +118,7 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	for (auto it : obst)
 	{
 #ifdef rectangleRobot
-		if (it->isInside(car->getRectangle()))
+		if (it->isInside(car->getRenderedRectangle()))
 #else
 		if (it->isInside(car->getLocation()))
 #endif
@@ -124,12 +127,28 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 			//				Should pass the "collision occured" information to the Open Framework and inform the user.
 //			while (true);
 //            exit( 3 );
+#if 0
             AllocConsole();
             if (MessageBox(FindWindowA("ConsoleWindowClass", NULL), L"Hi, Do you want to exit?", L"Bye!!", MB_HELP| MB_CANCELTRYCONTINUE | MB_ICONHAND | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDCANCEL)
             {
                 exit( 3 );
             }
+#else
+			if (car->getColor() != redColor)
+			{
+				car->setColor(redColor);
+			}
+			isInside = true;
+#endif
+		}
 
+		// no collision at this moment
+		if (isInside == false)
+		{
+			if (car->getColor() != greenColor)
+			{
+				car->setColor(greenColor);
+			}
 		}
 	}
 	

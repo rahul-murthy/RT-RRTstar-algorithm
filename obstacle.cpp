@@ -76,11 +76,17 @@ bool obstacles::isCollide(ofVec2f n1, ofVec2f n2)
 }
 
 #ifdef rectangleRobot
-bool obstacles::isInside(collisionRect rec)
+bool obstacles::isInside(collisionRect &rec)
 {
 	collisionCircle circle = collisionCircle(this->loc(), this->rad());
 	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
 }
+#ifdef predictMovement
+bool obstacles::isInside(collisionRect &rec, float time)
+{
+	return isInside(rec);
+}
+#endif
 #else	// when robot is a point with no area.
 bool obstacles::isInside(ofVec2f n)
 {
@@ -149,6 +155,18 @@ movingObst::movingObst(ofVec2f loc, ofVec2f vel)
 	velocity = vel;
 #endif // automatic
 	radius = 25;
+	mass = 3.14*radius*radius;
+	color = { 200,100,20 };
+}
+
+movingObst::movingObst(ofVec2f loc, ofVec2f vel, float _rad)
+{
+	location = loc;
+	maxVal = obstMaxVelocity;
+#ifdef automatic
+	velocity = vel;
+#endif // automatic
+	radius = _rad;
 	mass = 3.14*radius*radius;
 	color = { 200,100,20 };
 }
@@ -240,11 +258,21 @@ bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
 }
 
 #ifdef rectangleRobot
-bool movingObst::isInside(collisionRect rec)
+bool movingObst::isInside(collisionRect &rec)
 {
 	collisionCircle circle = collisionCircle(this->loc(), this->rad());
 	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
 }
+#ifdef predictMovement
+bool movingObst::isInside(collisionRect &rec, float time)
+{
+	// update location
+	ofVec2f predictedLocation = {this->loc().x + (velocity.x * time), this->loc().y + (velocity.y * time)};
+	collisionCircle circle = collisionCircle(predictedLocation, this->rad());
+
+	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
+}
+#endif
 #else	// when robot is a point with no area.
 bool movingObst::isInside(ofVec2f n)
 {
@@ -333,7 +361,7 @@ bool maze::isCollide(ofVec2f p1, ofVec2f p2)
 	return rect.intersects(p1,p2);
 }
 #ifdef rectangleRobot
-bool maze::isInside(collisionRect collRec)
+bool maze::isInside(collisionRect &collRec)
 {
 	//  _LR, ofVec2f _LF, ofVec2f _RF, ofVec2f _RR
 	ofVec3f tmpTL = rect.getTopLeft();
@@ -350,6 +378,12 @@ bool maze::isInside(collisionRect collRec)
 	collisionRect mazeRec = collisionRect(mazeCenter, LR, LF, RF, RR);
 	return CollisionCheck::IsCollision_RectToRect(collRec, mazeRec);
 }
+#ifdef predictMovement
+bool maze::isInside(collisionRect &rec, float time)
+{
+	return isInside(rec);
+}
+#endif
 #else	// when robot is a point with no area.
 bool maze::isInside(ofVec2f p)
 {

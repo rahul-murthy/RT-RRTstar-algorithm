@@ -24,7 +24,10 @@ public:
 	virtual bool isCollide(ofVec2f, ofVec2f);
 #ifdef rectangleRobot
 	// robot(rectangle) collides with this static obstacle(circle)
-	virtual bool isInside(collisionRect rec);
+	virtual bool isInside(collisionRect &rec);
+#ifdef predictMovement
+	virtual bool isInside(collisionRect &rec, float time);
+#endif
 #else
 	// robot(point) collides with this static obstacle(circle)
 	virtual bool isInside(ofVec2f);
@@ -35,6 +38,7 @@ private:
 	float radius;
 	ofColor color;
 };
+
 class movingObst : public obstacles
 {
 public:
@@ -42,6 +46,7 @@ public:
 	movingObst(ofVec2f loc);
 #ifdef automatic
 	movingObst(ofVec2f loc, ofVec2f vel);
+	movingObst(ofVec2f loc, ofVec2f vel, float _rad);
 #endif // automatic
 	~movingObst();
 	void render();
@@ -57,7 +62,10 @@ public:
 	bool isCollide(ofVec2f, ofVec2f);
 #ifdef rectangleRobot
 	// robot(rectangle) collides with this moving obstacle(circle)
-	bool isInside(collisionRect rec);
+	bool isInside(collisionRect &rec);
+#ifdef predictMovement
+	bool isInside(collisionRect &rec, float time);
+#endif
 #else
 	// robot(point) collides with this moving obstacle(circle)
 	bool isInside(ofVec2f n);
@@ -90,7 +98,10 @@ public:
 	bool isCollide(ofVec2f p1, ofVec2f p2);
 #ifdef rectangleRobot
 	// robot(rectangle) collides with this maze(rectangle)
-	bool isInside(collisionRect collRec);
+	bool isInside(collisionRect &collRec); 
+#ifdef predictMovement
+	bool isInside(collisionRect &rec, float time);
+#endif
 #else
 	// robot(point) collides with this moving obstacle(rectangle)
 	bool isInside(ofVec2f p);
