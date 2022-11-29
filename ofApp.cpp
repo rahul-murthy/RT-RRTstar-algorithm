@@ -197,30 +197,45 @@ void ofApp::mouseMoved(int x, int y ){
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
 
+	//ofVec2f loc2;
+	//loc2.set(x, y);
+	//if (button == 1) {
+	//		map->targetSet1(loc2);
+	//}
+
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-	ofVec2f loc;
-	loc.set(x, y);
+void ofApp::mousePressed(int x, int y, int button) {
+	ofVec2f loc1;
+	ofVec2f loc2;
+	loc1.set(x, y);
+	loc2.set(x, y);
 	if (button == 0) {
 		if (car != NULL) {
-			map->targetSet(loc);
+			map->targetSet(loc1);
 		}
 	}
 	else if (button == 2) {
-		car = new Robot(loc);
+		car = new Robot(loc1);
 		map = new Enviroment(car->getLocation());
 	}
+	else if (button == 1) {
+		if (car != NULL) {
+			map->targetSet1(loc2);
+		}
+
 	else
 	{
+
+	}
 
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-
+	
 }
 
 //--------------------------------------------------------------
