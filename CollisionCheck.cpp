@@ -1,10 +1,21 @@
 #include "CollisionCheck.h"
 
 // private functions
-ofVec2f CollisionCheck::_getNormalizedAxis(ofVec2f &curVertex, ofVec2f &nextVertex)
+ofVec2f CollisionCheck::_getNormPerpendicularAxis(ofVec2f &curVertex, ofVec2f &nextVertex)
 {
 	float axis_x = -(nextVertex.y - curVertex.y);
 	float axis_y = (nextVertex.x - curVertex.x);
+	float magnitude = hypot(axis_x, axis_y);
+
+	ofVec2f normalizedAxis = { (axis_x / magnitude), (axis_y / magnitude) };
+
+	return normalizedAxis;
+}
+
+ofVec2f CollisionCheck::_getNormalizedVector(ofVec2f &curPt, ofVec2f &nextPt)
+{
+	float axis_x = (nextPt.x - curPt.x);
+	float axis_y = (nextPt.y - curPt.y);
 	float magnitude = hypot(axis_x, axis_y);
 
 	ofVec2f normalizedAxis = { (axis_x / magnitude), (axis_y / magnitude) };
@@ -122,7 +133,7 @@ bool CollisionCheck::IsCollision_RectToRect(collisionRect rect1, collisionRect r
 	{
 		ofVec2f curVertex = rect1.Vertex[i];
 		ofVec2f nextVertex = rect1.Vertex[(i + 1) % VertexCount];
-		ofVec2f normalizedAxis = _getNormalizedAxis(curVertex, nextVertex);
+		ofVec2f normalizedAxis = _getNormPerpendicularAxis(curVertex, nextVertex);
 		_computeProjections(rect1, rect2, normalizedAxis, projection1, projection2);
 
 		if (_IsOverlapping(projection1, projection2) == false) { return false; }
@@ -132,7 +143,7 @@ bool CollisionCheck::IsCollision_RectToRect(collisionRect rect1, collisionRect r
 	{
 		ofVec2f curVertex = rect2.Vertex[i];
 		ofVec2f nextVertex = rect2.Vertex[(i + 1) % VertexCount];
-		ofVec2f normalizedAxis = _getNormalizedAxis(curVertex, nextVertex);
+		ofVec2f normalizedAxis = _getNormPerpendicularAxis(curVertex, nextVertex);
 		_computeProjections(rect1, rect2, normalizedAxis, projection1, projection2);
 		
 		if (_IsOverlapping(projection1, projection2) == false) { return false; }
@@ -153,7 +164,7 @@ bool CollisionCheck::IsCollision_RecToCircle(collisionRect rect, collisionCircle
 	{
 		ofVec2f curVertex = rect.Vertex[i];
 		ofVec2f nextVertex = rect.Vertex[(i + 1) % VertexCount];
-		ofVec2f normalizedAxis = _getNormalizedAxis(curVertex, nextVertex);
+		ofVec2f normalizedAxis = _getNormPerpendicularAxis(curVertex, nextVertex);
 		_computeProjections(rect, circle, normalizedAxis, projection1, projection2);
 
 		if (_IsOverlapping(projection1, projection2) == false) { return false; }
@@ -161,57 +172,21 @@ bool CollisionCheck::IsCollision_RecToCircle(collisionRect rect, collisionCircle
 
 	// one more projection from circle center to closest vertex of the rectangle!!!!!!!!!!!!
 	ofVec2f closestVertex;
-	// get closestVertex;
-	ofVec2f normalizedAxis = _getNormalizedAxis(circle.center, closestVertex);
-	_computeProjections(rect, circle, normalizedAxis, projection1, projection2);
+	float minDist = FLT_MAX;
+	// get closestVertex
+	for (int i = (int)VertexStart; i < (int)VertexCount; i++) 
+	{
+		float curDist = rect.Vertex[i].distance(circle.center);
+		if (curDist < minDist) {
+			minDist = curDist; 
+			closestVertex = rect.Vertex[i];
+		}
+	}
+	ofVec2f normalizedVector = _getNormalizedVector(circle.center, closestVertex);
+	_computeProjections(rect, circle, normalizedVector, projection1, projection2);
 	if (_IsOverlapping(projection1, projection2) == false) { return false; }
 
 	return true;
-
-#if 0
-	// get angle btw Right side of the robot and x axis;
-	float x = rect.Vertex[LF].x - rect.Vertex[LR].x;
-	float y = rect.Vertex[LF].y - rect.Vertex[LR].y;
-	float angle = ofRadToDeg(atan2(y, x) + PI / 2);
-
-	// Rotate circle's center point back
-	float unrotatedCircleX = cos(angle) * (circle.center.x - rect.center.x) -
-		sin(angle) * (circle.center.y - rect.center.y) + rect.center.x;
-	float unrotatedCircleY = sin(angle) * (circle.center.x - rect.center.x) +
-		cos(angle) * (circle.center.y - rect.center.y) + rect.center.y;
-
-	// Closest point in the rectangle to the center of circle rotated backwards(unrotated)
-	float closestX, closestY;
-
-	// Find the unrotated closest x point from center of unrotated circle
-	if (unrotatedCircleX < rect.center.x)
-		closestX = rect.center.x;
-	else if (unrotatedCircleX > rect.center.x + rect.width)
-		closestX = rect.center.x + rect.width;
-	else
-		closestX = unrotatedCircleX;
-
-	// Find the unrotated closest y point from center of unrotated circle
-	if (unrotatedCircleY < rect.center.y)
-		closestY = rect.center.y;
-	else if (unrotatedCircleY > rect.center.y + rect.height)
-		closestY = rect.center.y + rect.height;
-	else
-		closestY = unrotatedCircleY;
-
-	// Determine collision
-	bool collision = false;
-	ofVec2f vecCircle = {unrotatedCircleX, unrotatedCircleY};
-	ofVec2f closestPt = { closestX, closestY };
-
-	float distance = getEucDist(vecCircle, closestPt);
-	if (distance < circle.radius)
-		collision = true; // Collision
-	else
-		collision = false;
-
-	return collision;
-#endif
 }
 bool CollisionCheck::IsCollision_CircleToCircle(collisionCircle circle1, collisionCircle circle2) {
 	// get euclidean distance

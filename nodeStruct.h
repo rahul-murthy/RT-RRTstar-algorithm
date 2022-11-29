@@ -5,6 +5,8 @@ struct Nodes
 	ofVec2f location;
     ofVec2f LR, LF, RF, RR;
     ofVec2f velocity;
+	ofVec2f orientation;
+	float thetaXaxis;  // (-180, 180]
 	float time;	// expected time for the robot to reach the Node
 
 	Nodes *parent, *prevParent=NULL;
@@ -30,6 +32,8 @@ struct Nodes
 		RR.set(x_+r, y_ -r * 2);
 		velocity = { 0,0 };
 		time = 0;
+		orientation = { 1, 0 };
+		thetaXaxis = 0;
 	}
 	Nodes(float x_, float y_, float costToStart_, Nodes* p_ = NULL)
 	{
@@ -43,6 +47,8 @@ struct Nodes
 		RR = { 0,0 };
 		velocity = { 0,0 };
 		time = 0;
+		orientation = { 1, 0 };
+		thetaXaxis = 0;
 	}
 
 };

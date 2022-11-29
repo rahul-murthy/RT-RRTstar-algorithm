@@ -111,12 +111,15 @@ bool SMP::checkCollision(Nodes n1, Nodes n2, list<obstacles*> obst)
 
 bool SMP::checkSample(Nodes n,  list<obstacles*> obst)
 {
-
 #ifdef rectangleRobot
 	collisionRect *rec;
 	for (auto i : obst) {
 		rec = new collisionRect(n.location, n.LR, n.LF, n.RF, n.RR);
+#ifdef predictMovement
+		if (i->isInside(*rec, n.time)) return false;
+#else
 		if (i->isInside(*rec)) return false;
+#endif
 		delete rec;
 	}
 #else
@@ -186,7 +189,7 @@ void RRTstar::nextIter(std::list<Nodes>& nodes,list<obstacles*> obst, Nodes* u_)
 
 	// Bring the iterator to initial position again
 	it = safeNeighbours.begin();
-	while (it != safeNeighbours.end())			// This is where the code gets trapped in an infinite loop!!!
+	while (it != safeNeighbours.end())
 	{
 		float dist = u.costToStart + u.location.distance((*it)->location);
 		if ((*it)->costToStart > dist)
@@ -312,29 +315,33 @@ void RTRRTstar::changeRoot(Nodes* nextPoint, std::list<Nodes>& nodes)
 
 void RTRRTstar::expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacles*>& obst)
 {
+	Nodes* pu = new Nodes();
 	Nodes u = sample();
-	Nodes* v = RTRRTstar::getClosestNeighbour(u, nodes);
-	double dist = u.location.distance((*v).location);
+	pu = &u;
+	Nodes* v = RTRRTstar::getClosestNeighbour(*pu, nodes);
+	double dist = (*pu).location.distance((*v).location);
 
 	if (dist > epsilon)
 	{
-		float x_n = v->location.x + (u.location.x - v->location.x)  * epsilon / dist;
-		float y_n = v->location.y + (u.location.y - v->location.y)  * epsilon / dist;
-		u.location.x = x_n;
-		u.location.y = y_n;
+		float x_n = v->location.x + ((*pu).location.x - v->location.x)  * epsilon / dist;
+		float y_n = v->location.y + ((*pu).location.y - v->location.y)  * epsilon / dist;
+		(*pu).location.x = x_n;
+		(*pu).location.y = y_n;
 	}
 
-	// Init Node u
+#ifdef rectangleRobot
+	// Set variables of Node u other than it's center location, using parent node's information.
 	if (nodes.size() != 0) {
-		InitNode(u, *v);
+		InitNode((*pu), *v);
 	}
+#endif
 
-	if (!SMP::checkSample(u, obst)) return;
-	if (SMP::checkCollision(u, *v, obst))
+	if (!SMP::checkSample((*pu), obst)) return;
+	if (SMP::checkCollision((*pu), *v, obst))
 	{
 		if (this->closestNeighbours.size() < maxNeighbours)//u.location.distance(v->location) > minDistClosestNode)
 		{
-			this->addNode(u, v, nodes, obst);
+			this->addNode((*pu), v, nodes, obst);
 		}
 		else
 		{
@@ -423,20 +430,75 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	ofVec2f closestCenter = closestNode.location;
 	ofVec2f newNodeCenter = newNode.location;
 	ofVec2f velocity = { newNodeCenter.x - closestCenter.x, newNodeCenter.y - closestCenter.y };
+	ofVec2f orientation = { newNodeCenter.x - closestCenter.x, newNodeCenter.y - closestCenter.y };
+#if 0
+	// manual rotation
+#else
+	// openframework rotation
+	float r = robotSizeValue;
+	glm::vec4 _LR = { -2 * r, -r, 0, 1 };
+	glm::vec4 _RR = { -2 * r, r, 0, 1 };
+	glm::vec4 _RF = { 2 * r, r, 0, 1 };
+	glm::vec4 _LF = { 2 * r, -r, 0, 1 };
+#endif
+	orientation = orientation.normalized();
+	if (orientation.x == 0 && orientation.y == 0)
+	{
+		orientation = closestNode.orientation;
+	}
 	velocity = (velocity.normalized() *mVal);
 
-	float theta = ofRadToDeg(atan2(velocity.y, velocity.x) + PI / 2);
-	float cos_theta = cos(theta);
-	float sin_theta = sin(theta);
-
-	float r = robotSizeValue;
+	//assert((orientation.x != 0) || (orientation.y != 0));
 
 	newNode.velocity = velocity;
+	newNode.orientation = orientation;
 
-	newNode.LR = { -r, -r * 2 };
-	newNode.LF = { -r, r * 2 };
-	newNode.RF = { r, r * 2 };
-	newNode.RR = { r, -r * 2 };
+	// float theta = ofRadToDeg(atan2(velocity.x, velocity.y));
+	// float r = robotSizeValue;
+#if 0
+	// manual rotation
+	// theta diff between the closet node and the new node.
+	float cos_theta = closestNode.orientation.dot(newNode.orientation);
+	if (cos_theta > 1) { cos_theta = 1; }
+	else if (cos_theta < -1) { cos_theta = -1; }
+	float theta = ofRadToDeg(glm::acos(cos_theta));  // glm::acos() returns [0:PI]. 
+
+	newNode.thetaXaxis = ofRadToDeg(atan2(orientation.y, orientation.x));
+
+	// tell if the rotation should be done clockwise or counter clockwise
+	float crossProduct = (closestNode.orientation.x * newNode.orientation.y) - (closestNode.orientation.y * newNode.orientation.x);
+#else
+	ofVec2f xAxis = { 1, 0 };
+	// theta between the xAxis and orientation.
+	float cos_theta = xAxis.dot(newNode.orientation);
+	if (cos_theta > 1) { cos_theta = 1; }
+	else if (cos_theta < -1) { cos_theta = -1; }
+	float theta = ofRadToDeg(glm::acos(cos_theta));  // glm::acos() returns [0:PI]. 
+
+	newNode.thetaXaxis = ofRadToDeg(atan2(orientation.y, orientation.x));
+
+	// tell if the rotation should be done clockwise or counter clockwise
+	float crossProduct = (xAxis.x * newNode.orientation.y) - (xAxis.y * newNode.orientation.x);
+#endif
+
+	if (crossProduct > 0) {
+		// counter clockwise rotation. (+)
+	}
+	else if (crossProduct < 0) {
+		// clockwise rotation (-)
+		theta *= -1;
+	}
+	else {
+		// assert(((theta >= 0) && (theta < 0.05)) || 
+		//	((theta > 179.95) && (theta <= 180)));
+	}
+#if 0
+	// calculate four vertices based on the closest node info
+	////////////////////////////////////////////////
+	newNode.LR = closestNode.LR - closestCenter;
+	newNode.LF = closestNode.LF - closestCenter; 
+	newNode.RF = closestNode.RF - closestCenter;
+	newNode.RR = closestNode.RR - closestCenter;
 
 	newNode.LR.rotate(theta);
 	newNode.LF.rotate(theta);
@@ -447,6 +509,30 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	newNode.LF += newNodeCenter;
 	newNode.RF += newNodeCenter;
 	newNode.RR += newNodeCenter;
+#else
+	glRotatef(theta, 0, 0, 1);
+
+	_LR = { -2 * r, -r, 0, 1 };
+	_RR = { -2 * r, r, 0, 1 };
+	_RF = { 2 * r, r, 0, 1 };
+	_LF = { 2 * r, -r, 0, 1 };
+
+	auto modelMatrix = glm::inverse(ofGetCurrentViewMatrix()) * ofGetCurrentMatrix(OF_MATRIX_MODELVIEW);
+	_LR = modelMatrix * _LR;
+	_RR = modelMatrix * _RR;
+	_RF = modelMatrix * _RF;
+	_LF = modelMatrix * _LF;
+
+	_LR = { _LR.x + newNodeCenter.x, _LR.y + newNodeCenter.y, 0, 1 };
+	_RR = { _RR.x + newNodeCenter.x, _RR.y + newNodeCenter.y, 0, 1 };
+	_RF = { _RF.x + newNodeCenter.x, _RF.y + newNodeCenter.y, 0, 1 };
+	_LF = { _LF.x + newNodeCenter.x, _LF.y + newNodeCenter.y, 0, 1 };
+
+	newNode.LR = { _LR.x, _LR.y };
+	newNode.RR = { _RR.x, _RR.y };
+	newNode.RF = { _RF.x, _RF.y };
+	newNode.LF = { _LF.x, _LF.y };
+#endif
 
 	float dist = closestCenter.distance(newNodeCenter);
 	float delta_t = dist / mVal;
@@ -585,8 +671,9 @@ float RTRRTstar::cost(Nodes* node)
 	bool badNode = false;
 	float cost_ = 0;
 	Nodes* curr = node;
-	while (curr->parent != NULL)
+	while (curr->parent != NULL)			// This is where the code gets trapped in an infinite loop!!!
 	{
+		if (curr->parent == curr) { break; }
 		if (curr->parent->costToStart == inf)
 		{
 			node->costToStart = inf;
@@ -627,12 +714,22 @@ void RTRRTstar::rewireRandomNode(const list<obstacles*> &obst, std::list<Nodes> 
 		float cost_ = cost(Xr);
 		while (it != safeNeighbours.end())
 		{
-
+			// update the node based on parent node
+			bool IsCollision = false;
+			Nodes tmp = *(*it);
+#if 0
+			InitNode(tmp, *Xr);
+			if (!SMP::checkSample(tmp, obst)) { IsCollision = true; }
+			if (!IsCollision && SMP::checkCollision(tmp, *Xr, obst)) { IsCollision = true; }
+#endif
 			float oldCost = cost(*it);
 			float newCost = cost_ + Xr->location.distance((*it)->location);
-			if (newCost < oldCost)
+			if (!IsCollision && (newCost < oldCost))
 			{
-
+#if 0
+				// update the node based on parent node
+				InitNode(*(*it), *Xr);
+#endif
 				(*it)->prevParent = (*it)->parent;
 				(*it)->parent->children.remove(*it);
 				(*it)->parent = Xr;
@@ -672,10 +769,20 @@ void RTRRTstar::rewireFromRoot(const list<obstacles*> &obst, std::list<Nodes> &n
 			it = safeNeighbours.begin();
 			while (it != safeNeighbours.end()) {
 
+				// update the node based on parent node
+				bool IsCollision = false;
+#if 0
+				Nodes tmp = *(*it);
+				InitNode(tmp, *Xs);
+				if (!SMP::checkSample(tmp, obst)) { IsCollision = true; }
+				if (!IsCollision && SMP::checkCollision(tmp, *Xs, obst)) { IsCollision = true; }
+#endif
 				float oldCost = cost(*it);
 				float newCost = cost(Xs) + Xs->location.distance((*it)->location);
-				if (newCost < oldCost) {
-
+				if (!IsCollision && (newCost < oldCost)) {
+#if 0
+					InitNode(*(*it), *Xs);
+#endif
 					(*it)->prevParent = (*it)->parent;
 					(*it)->parent->children.remove(*it);
 					(*it)->parent = Xs;
