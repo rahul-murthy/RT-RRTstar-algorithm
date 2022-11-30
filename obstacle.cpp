@@ -240,16 +240,16 @@ void movingObst::move(std::list<obstacles*> obst)
         
         if (curr_time >= nextChangeTime.x && curr_time < nextChangeTime.y) {
             // figure out how to actually set velocity
-            velocity += accelaration;
-            accelaration.set(0, 0); // Don't think this needs to be here
+			velocity = {10, 0}; //accelaration;
+            //accelaration.set(0, 0); // Don't think this needs to be here
         }
         if (curr_time >= nextChangeTime.y && curr_time < nextChangeTime.z) {
-            velocity += accelaration / 10;
-            accelaration.set(0, 0);
+            velocity = {0, 0};// accelaration / 10;
+           // accelaration.set(0, 0);
         }
         if (curr_time >= nextChangeTime.z) {
-            velocity += accelaration * 10;
-            accelaration.set(0, 0);
+			velocity = {5, 5};// accelaration * 10;
+           // accelaration.set(0, 0);
         }
         
         
@@ -260,10 +260,10 @@ void movingObst::move(std::list<obstacles*> obst)
         if (location.x- radius <= 0 || location.x+ radius >= ofGetWidth()) {
             velocity.x = velocity.x*-1;
         }
-    }
 
 		location += velocity;
 	}
+}
 
 #endif // automatic
 bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
@@ -341,47 +341,23 @@ void movingObst::update()
 //        velocity.set(1, 0);
         velocity += accelaration;
         location += velocity; // update location
-        accelaration.set(0, 0);
+        //accelaration.set(0, 0);
     }
     if (curr_time >= nextChangeTime.y && curr_time < nextChangeTime.z) {
         velocity += accelaration / 10;
         location += velocity; // update location
-        accelaration.set(0, 0);
+        //accelaration.set(0, 0);
     }
     if (curr_time >= nextChangeTime.z) {
         velocity += accelaration * 10;
         location += velocity; // update location
-        accelaration.set(0, 0);
+        //accelaration.set(0, 0);
     }
 //    curr_time += 1;
     
 //    nextChangeTime = ;// get next time change
 //    nextChangeTime = getNextChangeTime(arrChanges);
 
-}
-
-double movingObst::getNextChangeTime(double time)
-{
-    // Function for picking a velocity at a certain time
-    ofVec2f vel;
-    if (time == 10) {
-        vel.set(1, 0);
-    }
-    else if (time == 20) {
-        vel.set(1, 0);
-    }
-    else if (time == 200) {
-        vel.set(0, -1);
-    }
-//    return vel;
-//    std::map<double, ofVec2f> arrChanges =
-//    {   // time // velocity
-//        { 10,     {1, 0}},
-//        { 20,     {0, 1}},
-//        { 200,    {0, -1}},
-//    };
-    
-    
 }
 
 ofVec2f movingObst::repulsive(obstacles *obst)

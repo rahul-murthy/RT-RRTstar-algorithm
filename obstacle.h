@@ -72,7 +72,6 @@ public:
 #endif
 	void applyForce(ofVec2f force);
 	void update();
-    double getNextChangeTime(double time);
 	ofVec2f repulsive(obstacles *obst);
 private:
     double curr_time;
