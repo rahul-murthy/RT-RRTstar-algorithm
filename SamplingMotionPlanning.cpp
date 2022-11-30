@@ -5,14 +5,19 @@
 #include "RT-RRTstar.h"
 
 bool SMP::goalFound = false;
+bool SMP::goal1Found = false;
+bool SMP::goal2Found = false;
 bool SMP::sampledInGoalRegion = false;
 bool SMP::moveNow = false;
 bool InformedRRTstar::usingInformedRRTstar = false;
 bool RTRRTstar::goalDefined = false;
 
-ofVec2f SMP::goal;
+ofVec2f SMP::goal1;
+ofVec2f SMP::goal2;
 ofVec2f SMP::start;
 Nodes* SMP::target = NULL;
+Nodes* SMP::target1 = NULL;
+Nodes* SMP::target2 = NULL;
 Nodes* SMP::nextTarget = NULL;
 Nodes* SMP::root = NULL;
 std::set<Nodes*, nodes_compare> RTRRTstar::visited_set;
@@ -25,7 +30,13 @@ SMP::SMP()
 void SMP::addNode(Nodes n, std::list<Nodes>& nodes)
 {
 	nodes.push_back(n);
-	if (n.location.distance(goal) < converge)
+	if (n.location.distance(goal1) < converge)
+	{
+		goalFound = true;
+		sampledInGoalRegion = true;
+		target = &(nodes.back());
+	}
+	else if (n.location.distance(goal2) < converge);
 	{
 		goalFound = true;
 		sampledInGoalRegion = true;
@@ -241,14 +252,14 @@ void InformedRRTstar::nextIter(std::list<Nodes> &nodes, std::list<obstacles*> ob
 
 Nodes InformedRRTstar::sample(float c_max)
 {
-	float c_min = SMP::goal.distance(SMP::start);
+	float c_min = SMP::goal1.distance(SMP::start);
 
 
 	if (std::abs(c_max - c_min) < 100 && usingInformedRRTstar) //Putting a dummy value for now - Robot might not move for some configurations with this value
 		SMP::moveNow = true; //TODO: The flag will be associated with time. Should turn on when the spcified time lapses
 
-	ofVec2f x_centre = (SMP::start + SMP::goal) / 2;
-	ofVec2f dir = SMP::goal - SMP::start;
+	ofVec2f x_centre = (SMP::start + SMP::goal1) / 2;
+	ofVec2f dir = SMP::goal1 - SMP::start;
 	dir = dir.getNormalized();
 	float angle = std::atan2(-dir.y, dir.x); //Frame is with y pointing downwards
 	float r1 = c_max / 2;
@@ -384,7 +395,7 @@ void RTRRTstar::updateNextBestPath()
 		if (currPath.size() == 0)
 			currPath.push_back(SMP::root);
 
-		if (updatedPath.back()->location.distance(SMP::goal) < currPath.back()->location.distance(SMP::goal))
+		if (updatedPath.back()->location.distance(SMP::goal1) < currPath.back()->location.distance(SMP::goal1))
 			currPath = updatedPath;
 	}
 	
@@ -579,14 +590,78 @@ void RTRRTstar::addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const 
 	nodes.push_back(n);
 	parent->children.push_back(&(nodes.back()));
 
-	if (n.location.distance(SMP::goal) < converge)
+	//if (n.location.distance(SMP::goal1 < converge || (SMP::goal2 < converge))
+	if (n.location.distance(SMP::goal1) < converge)
 	{
-		if (SMP::target == NULL || (SMP::target != NULL && SMP::target->costToStart > n.costToStart))
+		if (SMP::target1 == NULL || (SMP::target1 != NULL && SMP::target1->costToStart > n.costToStart))
 		{
-			SMP::target = &(nodes.back());
+			SMP::target1 = &(nodes.back());
 		}
-		SMP::goalFound = true;
+		SMP::goal1Found = true;
+		if (SMP::goal2Found == true) 
+		{
+			SMP::goalFound = true;
+		}
 	}
+	
+	else if (n.location.distance(SMP::goal2) < converge)
+	{
+		if (SMP::target2 == NULL || (SMP::target2 != NULL && SMP::target2->costToStart > n.costToStart))
+		{
+			SMP::target2 = &(nodes.back());
+		}
+		SMP::goal2Found = true;
+		if (SMP::goal1Found == true) 
+		{
+			SMP::goalFound = true;
+			// select one of the two targets and assign that to the SMP::target
+		}
+	}
+
+	if (SMP::goalFound == true)
+	{
+		std::list<Nodes*> target1Path;
+		Nodes* pathNode = target1;
+		double target1TotalCost = 0;
+		// do while loop on both targets and get total distance of two paths.
+		do
+		{
+			target1Path.push_back(pathNode);
+			// get cost (educlidean dist)
+			if (pathNode->parent != NULL)
+			{
+				target1TotalCost += pathNode->location.distance(pathNode->parent->location);
+			}
+			pathNode = pathNode->parent;
+		} while (pathNode != NULL);
+
+		std::list<Nodes*> target2Path;
+		double target2TotalCost = 0;
+		pathNode = target2;
+
+		do
+		{
+			target2Path.push_back(pathNode);
+			// get cost (educlidean dist)
+			if (pathNode->parent != NULL)
+			{
+				target2TotalCost += pathNode->location.distance(pathNode->parent->location);
+			}
+			pathNode = pathNode->parent;
+		} while (pathNode != NULL);
+		
+		// select one of the two targets and assign that to the SMP::target
+
+		if (target1TotalCost < target2TotalCost)
+		{
+			target = target1;
+		}
+		else
+		{
+			target = target2;
+		}
+	}
+	
 	//TODO: Add the node to the Grid based/KD-Tree Data structure
 
 	this->rewireRand.push_front(&(nodes.back()));
@@ -730,7 +805,7 @@ float RTRRTstar::getHeuristic(Nodes* u) {
 	if (visited_set.find(u) != visited_set.end())
 		return inf;
 	else
-		return u->location.distance(SMP::goal);
+		return u->location.distance(SMP::goal1);
 }
 
 //method not used
