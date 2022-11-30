@@ -32,6 +32,7 @@ class ofApp : public ofBaseApp{
 		std::list<obstacles*> obst;
 		movingObst *OBST;
 		maze *wall;
+		std::chrono::time_point<std::chrono::steady_clock> InitialTime;
 
 		double updateTime = 0, drawTime = 0;
 };

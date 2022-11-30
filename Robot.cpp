@@ -1,4 +1,5 @@
 #include "Robot.h"
+#include "SMP.h"
 
 void Robot::setup()
 {
@@ -15,6 +16,7 @@ void Robot::setup()
         maxForce.set(mForce, mForce);
         //color = { ofRandom(0,255),ofRandom(0,255) ,ofRandom(0,255) };
         color = {50,145,80};
+		bIsStartedMoving = false;
 #ifdef rectangleRobot
 		// Get 4 corners around the center
 		float r = robotSizeValue;
@@ -38,6 +40,7 @@ void Robot::setup(ofVec2f loc)
     maxVelocity.set(mVal, mVal);
     maxForce.set(mForce, mForce);
     color = { 50,145,80 };
+	bIsStartedMoving = false;
 
 #ifdef rectangleRobot
 	// Get 4 corners around the center
@@ -162,6 +165,16 @@ void Robot::controller(ofVec2f target)
     ofVec2f steer = (temp - velocity);
     steer = (steer.length() <= maxForce.length()) ? steer : (steer.normalized() *mForce);
     addForce(steer);
+}
+
+bool Robot::isStartedMoving(void)
+{
+	if (bIsStartedMoving == false && SMP::goalFound)
+	{
+		bIsStartedMoving = true;
+		return true;
+	}
+	return false;
 }
 
 bool Robot::controller(ofVec2f target, ofVec2f targetVel)

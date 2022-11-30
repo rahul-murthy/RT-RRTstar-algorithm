@@ -31,7 +31,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #else
 #define RobotRadius 0
 #define rectangleRobot
-//#define predictMovement
+#define predictMovement
 #endif
 //-------------------------------------------------------------Genral
 #define startx 500

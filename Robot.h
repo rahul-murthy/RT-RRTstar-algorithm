@@ -16,6 +16,7 @@ public:
 	glm::vec4 render_RF;
 	glm::vec4 render_LF;
 	glm::vec4 render_Center;
+	bool bIsStartedMoving;
 	//--------------------------------------------------------------Function
 	// Default constructor  
 	Robot() { setup(); }
@@ -79,6 +80,7 @@ public:
 	ofVec2f getVelocity() { return velocity; }
 	void fillEnviroment(const list<obstacles*> obst,list<Nodes> &node);
 	void updateEnviroment(list<Nodes> &node, obstacles *obst);
+	bool isStartedMoving();
 	//--------------------------------------------------------------Variables
 private:
 	bool alive;

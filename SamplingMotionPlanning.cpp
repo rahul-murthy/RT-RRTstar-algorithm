@@ -336,9 +336,9 @@ void RTRRTstar::expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacl
 		{
 			this->rewireRand.push_front(v);
 		}
-		rewireRandomNode(obst, nodes);
+		// rewireRandomNode(obst, nodes);
 	}
-	rewireFromRoot(obst, nodes);
+	// rewireFromRoot(obst, nodes);
 }
 
 void RTRRTstar::updateNextBestPath()
@@ -523,8 +523,9 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	newNode.LF = { _LF.x, _LF.y };
 #endif
 
+	// d = 1/2 * v * t
 	float dist = closestCenter.distance(newNodeCenter);
-	float delta_t = dist / mVal;
+	float delta_t = 2 * dist / mVal;
 
 	newNode.time = closestNode.time + delta_t;
 }

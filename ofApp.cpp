@@ -8,6 +8,7 @@ void ofApp::setup() {
 #endif // randomSeed
 #ifdef CLK
 	auto start = std::chrono::steady_clock::now();
+	InitialTime = start;
 #endif // DEBUG
 	ofSetVerticalSync(true);
 	ofSetFrameRate(30);
@@ -18,7 +19,7 @@ void ofApp::setup() {
 	//car.setup();
 
 
-	float arrMazeWallWidth[numberOfmazewall] = {
+	float arrMazeWallX[numberOfmazewall] = {
 		(float)0.6 * ofGetWidth(),		// wall #0
         (float)0.1 * ofGetWidth(),		// wall #1
         (float)0.2 * ofGetWidth(),		// wall #2
@@ -27,17 +28,17 @@ void ofApp::setup() {
         (float)0.86 * ofGetWidth(),		// wall #5
         (float)0.72 * ofGetWidth(),		// wall #6
 	};
-	float arrMazeWallHeight[numberOfmazewall] = { 
+	float arrMazeWallY[numberOfmazewall] = { 
 		0,								// wall #0
         (float)0.45 * ofGetHeight(),	// wall #1
-        (float)0.8 * ofGetHeight(),		// wall #2
+        (float)0.45 * ofGetHeight(),		// wall #2
         (float)0.4 * ofGetHeight(),		// wall #3
         (float)0.2 * ofGetHeight(),		// wall #4
         (float)0.1 * ofGetHeight(),		// wall #5
         (float)0.9 * ofGetHeight(),		// wall #6
 	};
 
-	float arrMazeWallX[numberOfmazewall] = {
+	float arrMazeWallWidth[numberOfmazewall] = {
 		20,		// wall #0
 		700,	// wall #1
 		20,		// wall #2
@@ -47,10 +48,10 @@ void ofApp::setup() {
 		60,		// wall #6
 	};
 
-	float arrMazeWallY[numberOfmazewall] = {
+	float arrMazeWallHeight[numberOfmazewall] = {
 		160,	// wall #0
 		40,		// wall #1
-		160,	// wall #2
+		300,	// wall #2
 		180,	// wall #3
 		40,		// wall #4
 		60,		// wall #5
@@ -61,8 +62,8 @@ void ofApp::setup() {
 	for (int i = 0; i < 3/*numberOfmazewall*/; i++)
 	{
 		ofVec2f w;
-		w.set(arrMazeWallWidth[i], arrMazeWallHeight[i]);
-		wall = new maze(w, arrMazeWallX[i], arrMazeWallY[i]);
+		w.set(arrMazeWallX[i], arrMazeWallY[i]);
+		wall = new maze(w, arrMazeWallWidth[i], arrMazeWallHeight[i]);
 		ob = wall;
 		obst.push_back(ob);
 	}
@@ -82,7 +83,7 @@ void ofApp::setup() {
 
 #if (numberOfmovObst != 0)
 	// moving obstacles' info
-	ofVec2f arrMovObsLocation[numberOfmovObst] = { {300, (float)0.35 * ofGetHeight()} };
+	ofVec2f arrMovObsLocation[numberOfmovObst] = { {200, (float)0.35 * ofGetHeight()} };
 	ofVec2f arrMovObsVector[numberOfmovObst] = { {-0.5, 0} };
 	
 	for (unsigned int i = 0; i < numberOfmovObst; i++)
@@ -139,7 +140,12 @@ void ofApp::draw(){
 		i->render();
 	}
 	if (map != NULL) map->render();
-	if (car!= NULL) car->render();
+	if (car != NULL) {
+		if (car->isStartedMoving()) {
+			InitialTime = std::chrono::steady_clock::now();
+		}
+		car->render();
+	}
 
 	char fpsStr[255]; // an array of chars
 	ofSetColor({ 255,0,0 });
@@ -214,7 +220,9 @@ void ofApp::draw(){
 		theta = ofRadToDeg(atan2(curOrientation.y, curOrientation.x));
 		sprintf(time, "Theta axisX: %f", theta);
 		myfont.drawString(time, 10, ofGetWindowHeight() - 620);
-		sprintf(time, "Current Time: %f", std::chrono::steady_clock::now());
+
+		double passedTime = std::chrono::duration<double, std::milli>(end - InitialTime).count();
+		sprintf(time, "Current Time: %f", passedTime);
 		myfont.drawString(time, 10, ofGetWindowHeight() - 605);
 	}
 #endif // DEBUG

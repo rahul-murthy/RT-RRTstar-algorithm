@@ -1,4 +1,5 @@
 #include "obstacle.h"
+#include "SMP.h"
 
 obstacles::obstacles()
 {
@@ -208,26 +209,29 @@ void movingObst::move(char key)
 #ifdef automatic
 void movingObst::move(std::list<obstacles*> obst)
 {
-	ofVec2f temp, maxForce,maxVelocity;
-	for (auto i : obst) {
-		ofVec2f dir = location - i->loc();
-		float accel = 1/ (dir.length() *dir.length());
-		temp += accel* dir.normalized();
-	}
-	maxForce.set(mForce, mForce);
-	temp = (temp.length() <= maxForce.length()) ? temp : (temp.normalized() *10*mForce);
-	velocity = velocity + temp;
-	maxVelocity.set(maxVal, maxVal);
-	velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
+	if (SMP::goalFound)
+	{
+		ofVec2f temp, maxForce, maxVelocity;
+		for (auto i : obst) {
+			ofVec2f dir = location - i->loc();
+			float accel = 1 / (dir.length() *dir.length());
+			temp += accel * dir.normalized();
+		}
+		maxForce.set(mForce, mForce);
+		temp = (temp.length() <= maxForce.length()) ? temp : (temp.normalized() * 10 * mForce);
+		velocity = velocity + temp;
+		maxVelocity.set(maxVal, maxVal);
+		velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
 
-	if (location.y+radius >= ofGetHeight() || location.y- radius <= 0) {
-		velocity.y = velocity.y*-1;
-	}
-	if (location.x- radius <= 0 || location.x+ radius >= ofGetWidth()) {
-		velocity.x = velocity.x*-1;
-	}
+		if (location.y + radius >= ofGetHeight() || location.y - radius <= 0) {
+			velocity.y = velocity.y*-1;
+		}
+		if (location.x - radius <= 0 || location.x + radius >= ofGetWidth()) {
+			velocity.x = velocity.x*-1;
+		}
 
-	location += velocity;
+		location += velocity;
+	}
 }
 #endif // automatic
 bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
