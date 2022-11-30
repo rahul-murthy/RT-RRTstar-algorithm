@@ -1,11 +1,7 @@
 #include "obstacle.h"
-<<<<<<< HEAD
 #include <map>
 #include <ctime>
-=======
 #include "SMP.h"
->>>>>>> ffdf65b37927136ec1a1ccb8a8b6bdebdf3b6f21
-
 obstacles::obstacles()
 {
 	float x = ofRandom(0, ofGetWindowWidth());
@@ -217,79 +213,58 @@ void movingObst::move(char key)
 #ifdef automatic
 void movingObst::move(std::list<obstacles*> obst)
 {
-<<<<<<< HEAD
 	ofVec2f temp, maxForce, maxVelocity;
     
-    time_t now = time(0);
-    tm *ltm = localtime(&now);
-    curr_time = ltm->tm_sec;
-    ofVec3f nextChangeTime;
-    nextChangeTime.set(15, 30, 45);
-    
-    /// Know exactly what this code is doing ------------------------------------------------------------------------------------------------------------------------------------------
-    /// To set the velocity the right way
-    for (auto i : obst) {
-		ofVec2f dir = location - i->loc();
-		float accel = 1/ (dir.length() *dir.length());
-		temp += accel* dir.normalized();
-	}
-	maxForce.set(mForce, mForce);
-	temp = (temp.length() <= maxForce.length()) ? temp : (temp.normalized() *10*mForce);
-//	velocity = velocity + temp;
-//	maxVelocity.set(maxVal, maxVal);
-//	velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
-    // ------------------------------------------------------------------------------------------------------
-    
-    
-    
-    if (curr_time >= nextChangeTime.x && curr_time < nextChangeTime.y) {
-//      figure out how to actually set velocity
-        velocity += accelaration;
-        accelaration.set(0, 0); // Don't think this needs to be here
+    if (SMP::goalFound) {
+        time_t now = time(0);
+        tm *ltm = localtime(&now);
+        curr_time = ltm->tm_sec;
+        ofVec3f nextChangeTime;
+        nextChangeTime.set(15, 30, 45);
+        
+        /// Know exactly what this code is doing ------------------------------------------------------------------------------------------------------------------------------------------
+        /// To set the velocity the right way
+        for (auto i : obst) {
+            ofVec2f dir = location - i->loc();
+            float accel = 1/ (dir.length() *dir.length());
+            temp += accel* dir.normalized();
+        }
+        maxForce.set(mForce, mForce);
+        temp = (temp.length() <= maxForce.length()) ? temp : (temp.normalized() *10*mForce);
+        //	velocity = velocity + temp;
+        //	maxVelocity.set(maxVal, maxVal);
+        //	velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
+        // ------------------------------------------------------------------------------------------------------
+        
+        
+        
+        if (curr_time >= nextChangeTime.x && curr_time < nextChangeTime.y) {
+            // figure out how to actually set velocity
+            velocity += accelaration;
+            accelaration.set(0, 0); // Don't think this needs to be here
+        }
+        if (curr_time >= nextChangeTime.y && curr_time < nextChangeTime.z) {
+            velocity += accelaration / 10;
+            accelaration.set(0, 0);
+        }
+        if (curr_time >= nextChangeTime.z) {
+            velocity += accelaration * 10;
+            accelaration.set(0, 0);
+        }
+        
+        
+        // Keeps it inside the environment
+        if (location.y+radius >= ofGetHeight() || location.y- radius <= 0) {
+            velocity.y = velocity.y*-1;
+        }
+        if (location.x- radius <= 0 || location.x+ radius >= ofGetWidth()) {
+            velocity.x = velocity.x*-1;
+        }
     }
-    if (curr_time >= nextChangeTime.y && curr_time < nextChangeTime.z) {
-        velocity += accelaration / 10;
-        accelaration.set(0, 0);
-    }
-    if (curr_time >= nextChangeTime.z) {
-        velocity += accelaration * 10;
-        accelaration.set(0, 0);
-    }
-
-    
-    // Keeps it inside the environment
-	if (location.y+radius >= ofGetHeight() || location.y- radius <= 0) {
-		velocity.y = velocity.y*-1;
-	}
-	if (location.x- radius <= 0 || location.x+ radius >= ofGetWidth()) {
-		velocity.x = velocity.x*-1;
-	}
-=======
-	if (SMP::goalFound)
-	{
-		ofVec2f temp, maxForce, maxVelocity;
-		for (auto i : obst) {
-			ofVec2f dir = location - i->loc();
-			float accel = 1 / (dir.length() *dir.length());
-			temp += accel * dir.normalized();
-		}
-		maxForce.set(mForce, mForce);
-		temp = (temp.length() <= maxForce.length()) ? temp : (temp.normalized() * 10 * mForce);
-		velocity = velocity + temp;
-		maxVelocity.set(maxVal, maxVal);
-		velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
-
-		if (location.y + radius >= ofGetHeight() || location.y - radius <= 0) {
-			velocity.y = velocity.y*-1;
-		}
-		if (location.x - radius <= 0 || location.x + radius >= ofGetWidth()) {
-			velocity.x = velocity.x*-1;
-		}
->>>>>>> ffdf65b37927136ec1a1ccb8a8b6bdebdf3b6f21
 
 		location += velocity;
 	}
-}
+
 #endif // automatic
 bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
 {

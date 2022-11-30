@@ -144,9 +144,6 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
             {
                 exit( 3 );
             }
-<<<<<<< HEAD
-#endif
-=======
 #else
 			if (car->getColor() != redColor)
 			{
@@ -155,8 +152,6 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 			isInside = true;
 #endif
 		}
->>>>>>> ffdf65b37927136ec1a1ccb8a8b6bdebdf3b6f21
-
 		// no collision at this moment
 		if (isInside == false)
 		{
