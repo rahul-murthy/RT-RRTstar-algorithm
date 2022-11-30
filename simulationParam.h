@@ -8,7 +8,9 @@
 #define M(e) ofMap(e,-1,1,0,1);
 const float inf = std::numeric_limits<float>::infinity();
 //--------------------------------------------------------------ofApp.h
+
 #define numberOfstaticObst 2
+
 #define numberOfmovObst 1
 #define numberOfobst (numberOfstaticObst+numberOfmovObst)
 #define numberOfmazewall 7
@@ -31,6 +33,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #else
 #define RobotRadius 0
 #define rectangleRobot
+#define predictMovement
 #endif
 //-------------------------------------------------------------Genral
 #define startx 500

@@ -1,6 +1,10 @@
 #include "obstacle.h"
+<<<<<<< HEAD
 #include <map>
 #include <ctime>
+=======
+#include "SMP.h"
+>>>>>>> ffdf65b37927136ec1a1ccb8a8b6bdebdf3b6f21
 
 obstacles::obstacles()
 {
@@ -78,11 +82,17 @@ bool obstacles::isCollide(ofVec2f n1, ofVec2f n2)
 }
 
 #ifdef rectangleRobot
-bool obstacles::isInside(collisionRect rec)
+bool obstacles::isInside(collisionRect &rec)
 {
 	collisionCircle circle = collisionCircle(this->loc(), this->rad());
 	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
 }
+#ifdef predictMovement
+bool obstacles::isInside(collisionRect &rec, float time)
+{
+	return isInside(rec);
+}
+#endif
 #else	// when robot is a point with no area.
 bool obstacles::isInside(ofVec2f n)
 {
@@ -158,6 +168,18 @@ movingObst::movingObst(ofVec2f loc, ofVec2f vel)
     curr_time = 0;
 }
 
+movingObst::movingObst(ofVec2f loc, ofVec2f vel, float _rad)
+{
+	location = loc;
+	maxVal = obstMaxVelocity;
+#ifdef automatic
+	velocity = vel;
+#endif // automatic
+	radius = _rad;
+	mass = 3.14*radius*radius;
+	color = { 200,100,20 };
+}
+
 movingObst::~movingObst()
 {
 }
@@ -195,6 +217,7 @@ void movingObst::move(char key)
 #ifdef automatic
 void movingObst::move(std::list<obstacles*> obst)
 {
+<<<<<<< HEAD
 	ofVec2f temp, maxForce, maxVelocity;
     
     time_t now = time(0);
@@ -241,8 +264,31 @@ void movingObst::move(std::list<obstacles*> obst)
 	if (location.x- radius <= 0 || location.x+ radius >= ofGetWidth()) {
 		velocity.x = velocity.x*-1;
 	}
+=======
+	if (SMP::goalFound)
+	{
+		ofVec2f temp, maxForce, maxVelocity;
+		for (auto i : obst) {
+			ofVec2f dir = location - i->loc();
+			float accel = 1 / (dir.length() *dir.length());
+			temp += accel * dir.normalized();
+		}
+		maxForce.set(mForce, mForce);
+		temp = (temp.length() <= maxForce.length()) ? temp : (temp.normalized() * 10 * mForce);
+		velocity = velocity + temp;
+		maxVelocity.set(maxVal, maxVal);
+		velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
 
-	location += velocity;
+		if (location.y + radius >= ofGetHeight() || location.y - radius <= 0) {
+			velocity.y = velocity.y*-1;
+		}
+		if (location.x - radius <= 0 || location.x + radius >= ofGetWidth()) {
+			velocity.x = velocity.x*-1;
+		}
+>>>>>>> ffdf65b37927136ec1a1ccb8a8b6bdebdf3b6f21
+
+		location += velocity;
+	}
 }
 #endif // automatic
 bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
@@ -273,11 +319,21 @@ bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
 }
 
 #ifdef rectangleRobot
-bool movingObst::isInside(collisionRect rec)
+bool movingObst::isInside(collisionRect &rec)
 {
 	collisionCircle circle = collisionCircle(this->loc(), this->rad());
 	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
 }
+#ifdef predictMovement
+bool movingObst::isInside(collisionRect &rec, float time)
+{
+	// update location
+	ofVec2f predictedLocation = {this->loc().x + (velocity.x * time), this->loc().y + (velocity.y * time)};
+	collisionCircle circle = collisionCircle(predictedLocation, this->rad());
+
+	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
+}
+#endif
 #else	// when robot is a point with no area.
 bool movingObst::isInside(ofVec2f n)
 {
@@ -422,7 +478,7 @@ bool maze::isCollide(ofVec2f p1, ofVec2f p2)
 	return rect.intersects(p1,p2);
 }
 #ifdef rectangleRobot
-bool maze::isInside(collisionRect collRec)
+bool maze::isInside(collisionRect &collRec)
 {
 	//  _LR, ofVec2f _LF, ofVec2f _RF, ofVec2f _RR
 	ofVec3f tmpTL = rect.getTopLeft();
@@ -439,6 +495,12 @@ bool maze::isInside(collisionRect collRec)
 	collisionRect mazeRec = collisionRect(mazeCenter, LR, LF, RF, RR);
 	return CollisionCheck::IsCollision_RectToRect(collRec, mazeRec);
 }
+#ifdef predictMovement
+bool maze::isInside(collisionRect &rec, float time)
+{
+	return isInside(rec);
+}
+#endif
 #else	// when robot is a point with no area.
 bool maze::isInside(ofVec2f p)
 {

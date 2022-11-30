@@ -25,7 +25,8 @@ public:
 	void setup();
 	void setup(ofVec2f _start);
 	void update(Robot * car, list<obstacles*> obst);
-	void targetSet(ofVec2f loc);
+	void targetSet(ofVec2f loc1);
+	void targetSet1(ofVec2f loc2);
 	// Update method
 	void update(Robot *car);
 	// Render method draw nodes in enviroment.
@@ -34,7 +35,8 @@ public:
 	void renderGrid();
 	//--------------------------------------------------------------Variables
 	bool grid = false;
-	bool goalin = false;
+	bool goal1in = false;
+	bool goal2in = false;
 	ofxFloatSlider guiRad,guiEpsilon;
 	ofxPanel gui;
 private:
@@ -50,7 +52,8 @@ protected:
 	bool rrtFlag = true;
 	bool planner = true;
 
-	ofVec2f goal;
+	ofVec2f goal1;
+	ofVec2f goal2;
 	ofVec2f home;
 	//Robot *car;
 
@@ -65,6 +68,8 @@ inline void Enviroment::setup()
 	this->nodes.push_back(start);
 	SMP::start.set(startx, starty);
 	SMP::goalFound = false;
+	SMP::goal1Found = false;
+	SMP::goal2Found = false;
 }
 
 
@@ -79,9 +84,12 @@ inline void Enviroment::setup(ofVec2f _start)
 	this->nodes.push_back(start);
 
 	SMP::root = &(this->nodes.front());
-	goal.set(goalx, goaly);
+	goal1.set(goalx, goaly);
+	goal2.set(goalx, goaly);
 	SMP::start.set(startx, starty);
 	SMP::goalFound = false;
+	SMP::goal1Found = false;
+	SMP::goal2Found = false;
 }
 
 inline void Enviroment::update(Robot *car, list<obstacles*> obst)
@@ -94,8 +102,14 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	//InformedRRTstar::usingInformedRRTstar = true;
 
 	//RTRRTstar-
+	ofColor redColor = { 145,50,80 };
+	ofColor greenColor = { 50,145,80 };
+	bool isInside = false;
 
-	if (car->getLocation().distance(SMP::goal) < converge)
+	if (car->getLocation().distance(SMP::goal1) < converge)
+		planner = false;
+
+	if (car->getLocation().distance(SMP::goal2) < converge)
 		planner = false;
 
 	if (planner)
@@ -115,7 +129,7 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	for (auto it : obst)
 	{
 #ifdef rectangleRobot
-		if (it->isInside(car->getRectangle()))
+		if (it->isInside(car->getRenderedRectangle()))
 #else
 		if (it->isInside(car->getLocation()))
 #endif
@@ -130,8 +144,26 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
             {
                 exit( 3 );
             }
+<<<<<<< HEAD
 #endif
+=======
+#else
+			if (car->getColor() != redColor)
+			{
+				car->setColor(redColor);
+			}
+			isInside = true;
+#endif
+		}
+>>>>>>> ffdf65b37927136ec1a1ccb8a8b6bdebdf3b6f21
 
+		// no collision at this moment
+		if (isInside == false)
+		{
+			if (car->getColor() != greenColor)
+			{
+				car->setColor(greenColor);
+			}
 		}
 	}
 	
@@ -170,17 +202,17 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	}*/
 }
 
-inline void Enviroment::targetSet(ofVec2f loc)
+inline void Enviroment::targetSet(ofVec2f loc1)
 {
-	goal = loc;
-	SMP::goal = goal;
+	goal1 = loc1;
+	SMP::goal1 = goal1;
 	RTRRTstar::goalDefined = true;
 	
 	planner = true;
 	std::list<Nodes>::iterator it = nodes.begin();
 	while (it != nodes.end())
 	{
-		if ((*it).location.distance(loc) < converge)
+		if ((*it).location.distance(loc1) < converge)
 		{
 			SMP::target = &(*it);
 			return;
@@ -188,9 +220,34 @@ inline void Enviroment::targetSet(ofVec2f loc)
 		it++;
 	}
 	SMP::goalFound = false;
+	SMP::goal1Found = false;
 	SMP::target = NULL;
 	path.clear();
-	goalin = true;
+	goal1in = true;
+}
+
+inline void Enviroment::targetSet1(ofVec2f loc1)
+{
+	goal2 = loc1;
+	SMP::goal2 = goal2;
+	RTRRTstar::goalDefined = true;
+
+	planner = true;
+	std::list<Nodes>::iterator it = nodes.begin();
+	while (it != nodes.end())
+	{
+		if ((*it).location.distance(loc1) < converge)
+		{
+			SMP::target = &(*it);
+			return;
+		}
+		it++;
+	}
+	SMP::goalFound = false;
+	SMP::goal2Found = false;
+	SMP::target = NULL;
+	path.clear();
+	goal2in = true;
 }
 
 inline void Enviroment::render()
@@ -199,12 +256,21 @@ inline void Enviroment::render()
 	ofEnableAlphaBlending();
 
 	ofSetColor({150, 0, 255});
-	if (goalin) {
+	if (goal1in) {
 		ofFill();
-		ofDrawCircle(goal.x, goal.y, NODE_RADIUS+2);
+		ofDrawCircle(goal1.x, goal1.y, NODE_RADIUS+2);
 		ofNoFill();
 		ofSetLineWidth(2);
-		ofDrawCircle(goal.x, goal.y, converge);
+		ofDrawCircle(goal1.x, goal1.y, converge);
+	}
+
+	ofSetColor({ 0, 170, 255 });
+	if (goal2in) {
+		ofFill();
+		ofDrawCircle(goal2.x, goal2.y, NODE_RADIUS + 2);
+		ofNoFill();
+		ofSetLineWidth(2);
+		ofDrawCircle(goal2.x, goal2.y, converge);
 	}
 
 	for (auto i : this->nodes)
