@@ -4,7 +4,7 @@
 void Robot::setup()
 {
 //        alive = true; mass = 5.0; scanRadius = sensorRadius; accuracy = accur;
-        alive = true; mass = 5.0; scanRadius = robotSizeValue; accuracy = accur;
+        alive = true; mass = 5.0; scanRadius = sqrt((1+4) * robotSizeValue* robotSizeValue); accuracy = accur;
         //battery = 100;
         //float x = ofRandom(0, ofGetWindowWidth()); float y = ofRandom(0, ofGetWindowHeight());`
         location.set(0.0,0.0);
@@ -17,6 +17,8 @@ void Robot::setup()
         //color = { ofRandom(0,255),ofRandom(0,255) ,ofRandom(0,255) };
         color = {50,145,80};
 		bIsStartedMoving = false;
+		controlTargetReached = false;
+		setOrientation({ 1,0 });
 #ifdef rectangleRobot
 		// Get 4 corners around the center
 		float r = robotSizeValue;
@@ -32,7 +34,7 @@ void Robot::setup()
 
 void Robot::setup(ofVec2f loc)
 {
-    alive = true; mass = 5.0; scanRadius = 20; accuracy = accur;
+    alive = true; mass = 5.0; scanRadius = sqrt((1 + 4) * robotSizeValue* robotSizeValue); accuracy = accur;
     location = loc;
     HOME = location;
     velocity.set(0.0, 0.0);
@@ -41,6 +43,8 @@ void Robot::setup(ofVec2f loc)
     maxForce.set(mForce, mForce);
     color = { 50,145,80 };
 	bIsStartedMoving = false;
+	controlTargetReached = false;
+	setOrientation({ 1,0 });
 
 #ifdef rectangleRobot
 	// Get 4 corners around the center
@@ -89,7 +93,7 @@ void Robot::render()
     ofDrawCircle(location.x,location.y,scanRadius);
     ofPushMatrix();
     ofTranslate(location.x,location.y);
-    ofRotate(ofRadToDeg(atan2(velocity.y, velocity.x)));
+    ofRotate(ofRadToDeg(atan2(orientation.y, orientation.x)));
     ofNoFill();
     
     ofBeginShape();
@@ -154,6 +158,7 @@ void Robot::controller(ofVec2f target)
     //error *= 1.5;
     //accelaration = error;
     float m;
+#if 0
     if (error.length() < converge) {
         m = ofMap(error.length(), 0, converge, 0, mVal);
     }
@@ -164,7 +169,22 @@ void Robot::controller(ofVec2f target)
     ofVec2f temp = error.normalized()*m;
     ofVec2f steer = (temp - velocity);
     steer = (steer.length() <= maxForce.length()) ? steer : (steer.normalized() *mForce);
-    addForce(steer);
+    addForce(steer); 
+#else
+	if ((velocity.length() != 0) && (controlTargetReached == false) && (error.length() < 4/*converge*/)) 
+	{
+			controlTargetReached = true;
+			orientation = velocity.normalized();
+			velocity = { 0, 0 };
+			location = target;
+	}
+	else
+	{
+		velocity = error.normalize() * mVal;
+		orientation = velocity.normalized();
+		controlTargetReached = false;
+	}
+#endif
 }
 
 bool Robot::isStartedMoving(void)

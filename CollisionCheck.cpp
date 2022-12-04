@@ -97,6 +97,68 @@ float CollisionCheck::getEucDist(ofVec2f a, ofVec2f b)
 	return std::sqrt(std::pow((a.x - b.x), 2) + std::pow((a.y - b.y), 2));
 }
 
+void CollisionCheck::rotateRectToTarget(collisionRect &rect, ofVec2f &targetOrientation) 
+{
+	// openframework rotation
+	float r = rect.sizeVal;
+	assert(r == 20);
+
+	glm::vec4 _LR = { -2 * r, -r, 0, 1 };
+	glm::vec4 _RR = { -2 * r, r, 0, 1 };
+	glm::vec4 _RF = { 2 * r, r, 0, 1 };
+	glm::vec4 _LF = { 2 * r, -r, 0, 1 };
+
+	ofVec2f orientation = targetOrientation.normalized();
+	if (orientation.x == 0 && orientation.y == 0)
+	{
+		assert(false);
+		orientation = { 1,0 };
+	}
+
+	ofVec2f xAxis = { 1, 0 };
+	// theta between the xAxis and orientation.
+	float cos_theta = xAxis.dot(orientation);
+	if (cos_theta > 1) { cos_theta = 1; }
+	else if (cos_theta < -1) { cos_theta = -1; }
+	float theta = ofRadToDeg(glm::acos(cos_theta));  // glm::acos() returns [0:PI]. 
+
+	// tell if the rotation should be done clockwise or counter clockwise
+	float crossProduct = (xAxis.x * orientation.y) - (xAxis.y * orientation.x);
+	
+	if (crossProduct > 0) {
+		// counter clockwise rotation. (+)
+	}
+	else if (crossProduct < 0) {
+		// clockwise rotation (-)
+		theta *= -1;
+	}
+	else {
+		// assert(((theta >= 0) && (theta < 0.05)) || 
+		//	((theta > 179.95) && (theta <= 180)));
+	}
+
+	glRotatef(theta, 0, 0, 1);
+
+	auto modelMatrix = glm::inverse(ofGetCurrentViewMatrix()) * ofGetCurrentMatrix(OF_MATRIX_MODELVIEW);
+	_LR = modelMatrix * _LR;
+	_RR = modelMatrix * _RR;
+	_RF = modelMatrix * _RF;
+	_LF = modelMatrix * _LF;
+
+	// translate to center location
+	_LR = { _LR.x + rect.center.x, _LR.y + rect.center.y, 0, 1 };
+	_RR = { _RR.x + rect.center.x, _RR.y + rect.center.y, 0, 1 };
+	_RF = { _RF.x + rect.center.x, _RF.y + rect.center.y, 0, 1 };
+	_LF = { _LF.x + rect.center.x, _LF.y + rect.center.y, 0, 1 };
+
+	// update rectangle
+	rect.Vertex[LR] = { _LR.x, _LR.y };
+	rect.Vertex[RR] = { _RR.x, _RR.y };
+	rect.Vertex[RF] = { _RF.x, _RF.y };
+	rect.Vertex[LF] = { _LF.x, _LF.y };
+}
+
+
 ofVec2f CollisionCheck::rotatedPoint(ofVec2f coordinate, float degree, ofVec2f origin)
 {
 	float oldX = coordinate.x;

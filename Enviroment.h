@@ -129,7 +129,8 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	for (auto it : obst)
 	{
 #ifdef rectangleRobot
-		if (it->isInside(car->getRenderedRectangle()))
+		collisionRect rect = car->getRenderedRectangle();
+		if (it->isInside(rect))
 #else
 		if (it->isInside(car->getLocation()))
 #endif
@@ -137,7 +138,7 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 			// [Nov12]	Rather than using an infinite loop,
 			//				Should pass the "collision occured" information to the Open Framework and inform the user.
 //			while (true);
-//            exit( 3 );
+//          exit( 3 );
 #if 0
             AllocConsole();
             if (MessageBox(FindWindowA("ConsoleWindowClass", NULL), L"Hi, Do you want to exit?", L"Bye!!", MB_HELP| MB_CANCELTRYCONTINUE | MB_ICONHAND | MB_DEFBUTTON2 | MB_SYSTEMMODAL) == IDCANCEL)

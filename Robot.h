@@ -17,6 +17,7 @@ public:
 	glm::vec4 render_LF;
 	glm::vec4 render_Center;
 	bool bIsStartedMoving;
+	bool controlTargetReached;
 	//--------------------------------------------------------------Function
 	// Default constructor  
 	Robot() { setup(); }
@@ -81,6 +82,8 @@ public:
 	void fillEnviroment(const list<obstacles*> obst,list<Nodes> &node);
 	void updateEnviroment(list<Nodes> &node, obstacles *obst);
 	bool isStartedMoving();
+	void setOrientation(ofVec2f ori) { orientation = ori; };
+	ofVec2f getOrientation() { return orientation; }
 	//--------------------------------------------------------------Variables
 private:
 	bool alive;
@@ -89,6 +92,7 @@ private:
 
 	ofColor color;
 	ofVec2f HOME, location, velocity, accelaration, maxVelocity, maxForce;
+	ofVec2f orientation;
 	ofVec2f LR, RR, RF, LF;
 	ofPolyline line;
 	ofPoint pt;

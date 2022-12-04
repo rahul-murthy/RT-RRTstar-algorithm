@@ -12,6 +12,7 @@ bool SMP::moveNow = false;
 bool InformedRRTstar::usingInformedRRTstar = false;
 bool RTRRTstar::goalDefined = false;
 
+ofVec2f SMP::goal = { -1,-1 };
 ofVec2f SMP::goal1;
 ofVec2f SMP::goal2;
 ofVec2f SMP::start;
@@ -102,12 +103,14 @@ Nodes SMP::sampler()
 bool SMP::checkCollision(Nodes n1, Nodes n2, list<obstacles*> obst)
 {
 	for (auto i : obst) {
+#ifdef PathCollisionCheck
+			if (i->isCollide(n1)) 	return false;
+#else
 			if (i->isCollide(n1.location, n2.location)) 	return false;
+#endif
 	}
 	return true;
 }
-
-
 
 bool SMP::checkSample(Nodes n,  list<obstacles*> obst)
 {
@@ -115,8 +118,19 @@ bool SMP::checkSample(Nodes n,  list<obstacles*> obst)
 	collisionRect *rec;
 	for (auto i : obst) {
 		rec = new collisionRect(n.location, n.LR, n.LF, n.RF, n.RR);
+
 #ifdef predictMovement
 		if (i->isInside(*rec, n.time)) return false;
+		if (i->isMovingObst())
+		{
+			float timeDiffWindow = 5; 
+			// should be proportionate to location diff of the robot and obstacle's predicted location at time t.
+			// if it's too close, check more precisely
+			//if (i->isInside(*rec, n.time + 2.5)) return false;
+			//if (i->isInside(*rec, n.time + 5)) return false;
+			//if ((n.time >= 2.5) && (i->isInside(*rec, n.time - 2.5))) return false;
+			//if ((n.time >= 5) && (i->isInside(*rec, n.time - 5))) return false;
+		}
 #else
 		if (i->isInside(*rec)) return false;
 #endif
@@ -133,6 +147,7 @@ bool SMP::checkSample(Nodes n,  list<obstacles*> obst)
 
 void RRTstar::nextIter(std::list<Nodes>& nodes,list<obstacles*> obst, Nodes* u_)
 {
+#if 0
 	Nodes u;
 	if (u_ == NULL)
 		u = SMP::sampler();
@@ -195,17 +210,18 @@ void RRTstar::nextIter(std::list<Nodes>& nodes,list<obstacles*> obst, Nodes* u_)
 		if ((*it)->costToStart > dist)
 		{
 			(*it)->prevParent = (*it)->parent;
-			(*it)->parent = &(nodes.back());
+			(*it)->parent = &(nodes.back());	/// must update the time value as well
 			(*it)->costToStart = dist;
 		}
 		it++;
 	}
-
+#endif
 }
 
 std::list<Nodes*> RRTstar::findClosestNeighbours(Nodes u, std::list<Nodes>& nodes)
 {
 	std::list<Nodes*> closestNeighbours;
+#if 0
 	std::list<Nodes>::iterator it = nodes.begin();
 
 	/*float rrtstarradius = std::sqrt((ofGetWindowWidth() * ofGetWindowHeight() * maxNeighbours) / (3.146 * nodes.size()));
@@ -221,6 +237,7 @@ std::list<Nodes*> RRTstar::findClosestNeighbours(Nodes u, std::list<Nodes>& node
 		}
 		it++;
 	}
+#endif
 	return closestNeighbours;
 }
 
@@ -252,14 +269,15 @@ void InformedRRTstar::nextIter(std::list<Nodes> &nodes, std::list<obstacles*> ob
 
 Nodes InformedRRTstar::sample(float c_max)
 {
-	float c_min = SMP::goal1.distance(SMP::start);
+	float c_min = SMP::goal.distance(SMP::start);
 
+	if (goal.x == -1 && goal.y == -1) { assert(false); }
 
 	if (std::abs(c_max - c_min) < 100 && usingInformedRRTstar) //Putting a dummy value for now - Robot might not move for some configurations with this value
 		SMP::moveNow = true; //TODO: The flag will be associated with time. Should turn on when the spcified time lapses
 
-	ofVec2f x_centre = (SMP::start + SMP::goal1) / 2;
-	ofVec2f dir = SMP::goal1 - SMP::start;
+	ofVec2f x_centre = (SMP::start + SMP::goal) / 2;
+	ofVec2f dir = SMP::goal - SMP::start;
 	dir = dir.getNormalized();
 	float angle = std::atan2(-dir.y, dir.x); //Frame is with y pointing downwards
 	float r1 = c_max / 2;
@@ -431,16 +449,15 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	ofVec2f newNodeCenter = newNode.location;
 	ofVec2f velocity = { newNodeCenter.x - closestCenter.x, newNodeCenter.y - closestCenter.y };
 	ofVec2f orientation = { newNodeCenter.x - closestCenter.x, newNodeCenter.y - closestCenter.y };
-#if 0
-	// manual rotation
-#else
+	newNode.parent = &closestNode;
+
 	// openframework rotation
 	float r = robotSizeValue;
 	glm::vec4 _LR = { -2 * r, -r, 0, 1 };
 	glm::vec4 _RR = { -2 * r, r, 0, 1 };
 	glm::vec4 _RF = { 2 * r, r, 0, 1 };
 	glm::vec4 _LF = { 2 * r, -r, 0, 1 };
-#endif
+
 	orientation = orientation.normalized();
 	if (orientation.x == 0 && orientation.y == 0)
 	{
@@ -448,26 +465,9 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	}
 	velocity = (velocity.normalized() *mVal);
 
-	//assert((orientation.x != 0) || (orientation.y != 0));
-
 	newNode.velocity = velocity;
 	newNode.orientation = orientation;
 
-	// float theta = ofRadToDeg(atan2(velocity.x, velocity.y));
-	// float r = robotSizeValue;
-#if 0
-	// manual rotation
-	// theta diff between the closet node and the new node.
-	float cos_theta = closestNode.orientation.dot(newNode.orientation);
-	if (cos_theta > 1) { cos_theta = 1; }
-	else if (cos_theta < -1) { cos_theta = -1; }
-	float theta = ofRadToDeg(glm::acos(cos_theta));  // glm::acos() returns [0:PI]. 
-
-	newNode.thetaXaxis = ofRadToDeg(atan2(orientation.y, orientation.x));
-
-	// tell if the rotation should be done clockwise or counter clockwise
-	float crossProduct = (closestNode.orientation.x * newNode.orientation.y) - (closestNode.orientation.y * newNode.orientation.x);
-#else
 	ofVec2f xAxis = { 1, 0 };
 	// theta between the xAxis and orientation.
 	float cos_theta = xAxis.dot(newNode.orientation);
@@ -479,7 +479,6 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 
 	// tell if the rotation should be done clockwise or counter clockwise
 	float crossProduct = (xAxis.x * newNode.orientation.y) - (xAxis.y * newNode.orientation.x);
-#endif
 
 	if (crossProduct > 0) {
 		// counter clockwise rotation. (+)
@@ -492,24 +491,7 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 		// assert(((theta >= 0) && (theta < 0.05)) || 
 		//	((theta > 179.95) && (theta <= 180)));
 	}
-#if 0
-	// calculate four vertices based on the closest node info
-	////////////////////////////////////////////////
-	newNode.LR = closestNode.LR - closestCenter;
-	newNode.LF = closestNode.LF - closestCenter; 
-	newNode.RF = closestNode.RF - closestCenter;
-	newNode.RR = closestNode.RR - closestCenter;
 
-	newNode.LR.rotate(theta);
-	newNode.LF.rotate(theta);
-	newNode.RF.rotate(theta);
-	newNode.RR.rotate(theta);
-
-	newNode.LR += newNodeCenter;
-	newNode.LF += newNodeCenter;
-	newNode.RF += newNodeCenter;
-	newNode.RR += newNodeCenter;
-#else
 	glRotatef(theta, 0, 0, 1);
 
 	_LR = { -2 * r, -r, 0, 1 };
@@ -523,6 +505,7 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	_RF = modelMatrix * _RF;
 	_LF = modelMatrix * _LF;
 
+	// translate to center location
 	_LR = { _LR.x + newNodeCenter.x, _LR.y + newNodeCenter.y, 0, 1 };
 	_RR = { _RR.x + newNodeCenter.x, _RR.y + newNodeCenter.y, 0, 1 };
 	_RF = { _RF.x + newNodeCenter.x, _RF.y + newNodeCenter.y, 0, 1 };
@@ -532,11 +515,10 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	newNode.RR = { _RR.x, _RR.y };
 	newNode.RF = { _RF.x, _RF.y };
 	newNode.LF = { _LF.x, _LF.y };
-#endif
 
 	// d = 1/2 * v * t
-	float dist = closestCenter.distance(newNodeCenter);
-	float delta_t = 2 * dist / mVal;
+	double dist = closestCenter.distance(newNodeCenter);
+	double delta_t = dist / mVal;
 
 	newNode.time = closestNode.time + delta_t;
 }
@@ -654,10 +636,12 @@ void RTRRTstar::addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const 
 
 		if (target1TotalCost < target2TotalCost)
 		{
+			goal = goal1;
 			target = target1;
 		}
 		else
 		{
+			goal = goal2;
 			target = target2;
 		}
 	}
@@ -734,6 +718,10 @@ void RTRRTstar::rewireRandomNode(const list<obstacles*> &obst, std::list<Nodes> 
 				(*it)->prevParent = (*it)->parent;
 				(*it)->parent->children.remove(*it);
 				(*it)->parent = Xr;
+#if 1
+				float distToNewParent = (*it)->location.distance(Xr->location);
+				(*it)->time = Xr->time + (distToNewParent / mVal);
+#endif
 				(*it)->costToStart = newCost;
 				Xr->children.push_back(*it);
 				rewireRand.push_back(*it);
@@ -805,7 +793,8 @@ float RTRRTstar::getHeuristic(Nodes* u) {
 	if (visited_set.find(u) != visited_set.end())
 		return inf;
 	else
-		return u->location.distance(SMP::goal1);
+		if (goal.x == -1 && goal.y == -1) { assert(false); }
+		return u->location.distance(SMP::goal);
 }
 
 //method not used

@@ -21,7 +21,7 @@ void ofApp::setup() {
 
 	float arrMazeWallX[numberOfmazewall] = {
 		(float)0.6 * ofGetWidth(),		// wall #0
-        (float)0.1 * ofGetWidth(),		// wall #1
+        (float)0.4 * ofGetWidth(),		// wall #1
         (float)0.2 * ofGetWidth(),		// wall #2
         (float)0.8 * ofGetWidth(),		// wall #3
         (float)0.2 * ofGetWidth(),		// wall #4
@@ -40,7 +40,7 @@ void ofApp::setup() {
 
 	float arrMazeWallWidth[numberOfmazewall] = {
 		20,		// wall #0
-		700,	// wall #1
+		600,	// wall #1
 		20,		// wall #2
 		200,	// wall #3
 		60,		// wall #4
@@ -83,8 +83,12 @@ void ofApp::setup() {
 
 #if (numberOfmovObst != 0)
 	// moving obstacles' info
-	ofVec2f arrMovObsLocation[numberOfmovObst] = { {200, (float)0.35 * ofGetHeight()} };
-	ofVec2f arrMovObsVector[numberOfmovObst] = { {-0.5, 0} };
+	ofVec2f arrMovObsLocation[numberOfmovObst] = { 
+		{(float)400/*0.4 * ofGetWidth()*/, (float)260/*0.35 * ofGetHeight()*/},
+		{(float)400/*0.4 * ofGetWidth()*/, (float)260/*0.35 * ofGetHeight()*/},
+		{(float)0.9 * ofGetWidth(), (float)260/*0.35 * ofGetHeight()*/},
+	};
+	ofVec2f arrMovObsVector[numberOfmovObst] = { {-0.5, 0}, {0, -0.5}, {-1, 0} };
 	
 	for (unsigned int i = 0; i < numberOfmovObst; i++)
 	{
@@ -224,6 +228,8 @@ void ofApp::draw(){
 		double passedTime = std::chrono::duration<double, std::milli>(end - InitialTime).count();
 		sprintf(time, "Current Time: %f", passedTime);
 		myfont.drawString(time, 10, ofGetWindowHeight() - 605);
+        sprintf(time, "Elapsed Time: %f", ofGetElapsedTimef());
+        myfont.drawString(time, 10, ofGetWindowHeight() - 590);
 	}
 #endif // DEBUG
 }

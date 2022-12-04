@@ -19,6 +19,22 @@ struct collisionRect {
 	float width;
 	float height;
 	float sizeVal;
+	//Robot path area (Rect) to obstacle collision check. Constructor without center location
+	collisionRect(ofVec2f _LR, ofVec2f _RR, ofVec2f _RF, ofVec2f _LF) {
+		// calculate center location
+		center = {(_LR.x+_RR.x+_RF.x+_LF.x)/4, (_LR.y + _RR.y + _RF.y + _LF.y) / 4 };
+		Vertex[LR] = _LR;
+		Vertex[RR] = _RR;
+		Vertex[RF] = _RF;
+		Vertex[LF] = _LF;
+		width = std::sqrt(std::pow((_LF.x - _RF.x), 2) + std::pow((_LF.y - _RF.y), 2));
+		float width2 = std::sqrt(std::pow((_LR.x - _RR.x), 2) + std::pow((_LR.y - _RR.y), 2));
+		//assert(width == width2);	// two sides should be the same length
+		height = std::sqrt(std::pow((_LF.x - _LR.x), 2) + std::pow((_LF.y - _LR.y), 2));
+		float height2 = std::sqrt(std::pow((_RF.x - _RR.x), 2) + std::pow((_RF.y - _RR.y), 2));
+		//assert(height == height2);	// two sides should be the same length
+		sizeVal = round(height / 2);
+	}
 	//Robot path area (Rect) to obstacle collision check.
 	collisionRect(ofVec2f _center, ofVec2f _LR, ofVec2f _RR, ofVec2f _RF, ofVec2f _LF){
 		center = _center;
@@ -26,13 +42,14 @@ struct collisionRect {
 		Vertex[RR] = _RR;
 		Vertex[RF] = _RF;
 		Vertex[LF] = _LF;
-		sizeVal = 0;
 		width = std::sqrt(std::pow((_LF.x - _RF.x), 2) + std::pow((_LF.y - _RF.y), 2));
 		float width2 = std::sqrt(std::pow((_LR.x - _RR.x), 2) + std::pow((_LR.y - _RR.y), 2));
 		//assert(width == width2);	// two sides should be the same length
 		height = std::sqrt(std::pow((_LF.x - _LR.x), 2) + std::pow((_LF.y - _LR.y), 2));
 		float height2 = std::sqrt(std::pow((_RF.x - _RR.x), 2) + std::pow((_RF.y - _RR.y), 2));
 		//assert(height == height2);	// two sides should be the same length
+
+		sizeVal = round(height / 2);
 	}
 	// Robot Rect to obstacle collision check
 	collisionRect(ofVec2f _center, ofVec2f _LR, ofVec2f _RR, ofVec2f _RF, ofVec2f _LF, float _RobotSizeVal) : sizeVal(_RobotSizeVal) {
@@ -45,6 +62,7 @@ struct collisionRect {
 		Vertex[LF] = _LF;
 		width = 2 * _RobotSizeVal;
 		height = 4 * _RobotSizeVal;
+		sizeVal = _RobotSizeVal;
 	}
 	//Robot path area (Rect) to obstacle collision check.
 	collisionRect(ofVec2f _center, ofVec2f _LR, ofVec2f _LF, ofVec2f _RF, ofVec2f _RR, float _w, float _h) : width(_w), height(_h) {
@@ -53,7 +71,7 @@ struct collisionRect {
 		Vertex[RR] = _RR;
 		Vertex[RF] = _RF;
 		Vertex[LF] = _LF;
-		sizeVal = 0;
+		sizeVal = round(_h/2);
 	}
 };
 
@@ -85,6 +103,7 @@ public:
 	CollisionCheck() {};
 	static float getEucDist(ofVec2f a, ofVec2f b);
 	static ofVec2f rotatedPoint(ofVec2f coordinate, float degree, ofVec2f origin = { 0,0 });
+	static void rotateRectToTarget(collisionRect& rect, ofVec2f& targetOrientation);
 	static bool IsCollision_RectToRect(collisionRect rect1, collisionRect rect2);
 	static bool IsCollision_RecToCircle(collisionRect rect, collisionCircle circle);
 	static bool IsCollision_CircleToCircle(collisionCircle circle1, collisionCircle circle2);

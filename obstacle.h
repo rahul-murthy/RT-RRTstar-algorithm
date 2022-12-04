@@ -1,6 +1,7 @@
 #pragma once
 #include"simulationParam.h"
 #include "CollisionCheck.h"
+#include "nodeStruct.h"
 
 class obstacles
 {
@@ -23,10 +24,13 @@ public:
 	virtual  bool isCircle() { return true; }
 	virtual bool isCollide(ofVec2f, ofVec2f);
 #ifdef rectangleRobot
+	// check if a path between node n and its parent is in collision with this obstacle
+	virtual bool isCollide(Nodes &n);
 	// robot(rectangle) collides with this static obstacle(circle)
 	virtual bool isInside(collisionRect &rec);
 #ifdef predictMovement
 	virtual bool isInside(collisionRect &rec, float time);
+	virtual bool isMovingObst() { return false; };	
 #endif
 #else
 	// robot(point) collides with this static obstacle(circle)
@@ -61,10 +65,13 @@ public:
 	bool isCircle() { return true; }
 	bool isCollide(ofVec2f, ofVec2f);
 #ifdef rectangleRobot
+	// check if a path between node n and its parent is in collision with this obstacle
+    bool isCollide(Nodes &n);
 	// robot(rectangle) collides with this moving obstacle(circle)
 	bool isInside(collisionRect &rec);
 #ifdef predictMovement
 	bool isInside(collisionRect &rec, float time);
+	bool isMovingObst() { return true; };
 #endif
 #else
 	// robot(point) collides with this moving obstacle(circle)
@@ -99,10 +106,13 @@ public:
 	bool isCircle() { return false; }
 	bool isCollide(ofVec2f p1, ofVec2f p2);
 #ifdef rectangleRobot
+	// check if a path between node n and its parent is in collision with this obstacle
+	bool isCollide(Nodes &n);
 	// robot(rectangle) collides with this maze(rectangle)
 	bool isInside(collisionRect &collRec); 
 #ifdef predictMovement
 	bool isInside(collisionRect &rec, float time);
+	bool isMovingObst() { return false; };
 #endif
 #else
 	// robot(point) collides with this moving obstacle(rectangle)
