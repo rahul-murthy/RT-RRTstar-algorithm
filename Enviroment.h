@@ -153,7 +153,6 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 			isInside = true;
 #endif
 		}
-
 		// no collision at this moment
 		if (isInside == false)
 		{
