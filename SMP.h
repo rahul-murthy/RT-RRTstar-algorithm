@@ -19,7 +19,8 @@ public:
 	static bool goal2Found;
 	static bool sampledInGoalRegion;
 	static bool moveNow;
-	static ofVec2f start;
+	static ofVec2f start; 
+	static ofVec2f goal;
 	static ofVec2f goal1;
 	static ofVec2f goal2;
 	static Nodes* root;

@@ -7,7 +7,7 @@ struct Nodes
     ofVec2f velocity;
 	ofVec2f orientation;
 	float thetaXaxis;  // (-180, 180]
-	float time;	// expected time for the robot to reach the Node
+	double time;	// expected time for the robot to reach the Node
 
 	Nodes *parent, *prevParent=NULL;
 
@@ -17,7 +17,8 @@ struct Nodes
 	std::list<Nodes*> children;
 	Nodes()
 	{
-
+		parent = nullptr;
+		prevParent = nullptr;
 	}
 	Nodes(float x_, float y_, float costToStart_, float _sizeVal, Nodes* p_ = NULL)
 	{

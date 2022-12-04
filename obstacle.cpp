@@ -61,7 +61,7 @@ bool obstacles::isCollide(ofVec2f n1, ofVec2f n2)
 	float xo = location.x;
 	float yo = location.y;
 	float lambda = std::pow((x1 - x2), 2) + std::pow((y1 - y2), 2);
-	float t = (std::pow(x1, 2) + x2 * xo - x1*(x2 + xo) - (yo - y1)*(y1 - y2)) / lambda;
+	float t = (std::pow(x1, 2) + x2 * xo - x1 * (x2 + xo) - (yo - y1)*(y1 - y2)) / lambda;
 	float shortest_dist;
 	if (t >= 0 && t <= 1) // If the perpendicular distance lies on the line 'segment' connecting point_1 and point_2
 		shortest_dist = std::sqrt(std::pow((x2 * (y1 - yo) + x1 * (yo - y2) + xo * (y2 - y1)), 2) / lambda);
@@ -75,6 +75,56 @@ bool obstacles::isCollide(ofVec2f n1, ofVec2f n2)
 	if (shortest_dist < radius + RobotRadius) 	return true;
 	return false;
 }
+
+#ifdef rectangleRobot
+bool obstacles::isCollide(Nodes &n)
+{
+#ifdef PathCollisionCheck
+	Nodes* parent = n.parent;
+	collisionRect *rec;
+	collisionCircle *ObstacleCircle = new collisionCircle(this->loc(), this->rad());
+
+	// Step1. Check if the rectangle shaped area that the robot covers when it follows this path. 
+	//          (FROM parent node TO node n)
+	if (parent != nullptr)
+	{
+		collisionRect *rotatedParentRect = new collisionRect(parent->LR, parent->LF /*LF*/, parent->RF /*RF*/, parent->RR /*RR*/);
+		CollisionCheck::rotateRectToTarget(*rotatedParentRect, n.orientation);
+		rec = new collisionRect(rotatedParentRect->Vertex[VertexType::LR] /*LR*/, n.LF /*LF*/, n.RF /*RF*/, rotatedParentRect->Vertex[VertexType::LR] /*RR*/);
+		delete rotatedParentRect;
+	}
+	else
+	{
+		rec = new collisionRect(n.location, n.LR, n.LF, n.RF, n.RR);
+	}
+
+	/// need prediction if this is a moving obstacle.
+	if (CollisionCheck::IsCollision_RecToCircle(*rec, *ObstacleCircle)) return true;
+	delete rec;
+
+	// Step2. Check if the circle shaped area that the robot covers when it rotates. 
+	//          (before it starts moving toward the Node n)
+	float rad = (n.LF.distance(n.RR) / 2);
+
+	if (parent != nullptr)
+	{
+		collisionCircle *parentRotationCircle = new collisionCircle(parent->location.x, parent->location.y, rad);
+		if (CollisionCheck::IsCollision_CircleToCircle(*parentRotationCircle, *ObstacleCircle)) return true;
+		delete parentRotationCircle;
+	}
+
+	collisionCircle *rotationCircle = new collisionCircle(n.location.x, n.location.y, rad);
+	if (CollisionCheck::IsCollision_CircleToCircle(*rotationCircle, *ObstacleCircle)) return true;
+	delete rotationCircle;
+	delete ObstacleCircle;
+
+	return false;
+#else
+	assert(false); /// use this function only when the robot's shape is rectangle
+	return false;
+#endif
+}
+#endif
 
 #ifdef rectangleRobot
 bool obstacles::isInside(collisionRect &rec)
@@ -211,6 +261,7 @@ void movingObst::move(std::list<obstacles*> obst)
 {
 	if (SMP::goalFound)
 	{
+#if 0
 		ofVec2f temp, maxForce, maxVelocity;
 		for (auto i : obst) {
 			ofVec2f dir = location - i->loc();
@@ -222,7 +273,7 @@ void movingObst::move(std::list<obstacles*> obst)
 		velocity = velocity + temp;
 		maxVelocity.set(maxVal, maxVal);
 		velocity = (velocity.length() <= maxForce.length()) ? velocity : (velocity.normalized() *maxVal);
-
+#endif
 		if (location.y + radius >= ofGetHeight() || location.y - radius <= 0) {
 			velocity.y = velocity.y*-1;
 		}
@@ -260,6 +311,59 @@ bool movingObst::isCollide(ofVec2f n1, ofVec2f n2)
 	if (shortest_dist < radius + RobotRadius) 	return true;
 	return false;
 }
+
+#ifdef rectangleRobot
+bool movingObst::isCollide(Nodes &n)
+{
+#ifdef PathCollisionCheck
+	Nodes* parent = n.parent;
+	collisionRect *rec;
+	float timeDiff = n.time;
+	/// need prediction if this is a moving obstacle.
+	collisionCircle *ObstacleCircle = new collisionCircle(this->loc() + (velocity * timeDiff), this->rad());
+
+
+	// Step1. Check if the rectangle shaped area that the robot covers when it follows this path. 
+	//          (FROM parent node TO node n)
+	if (parent != nullptr)
+	{
+		collisionRect *rotatedParentRect = new collisionRect(parent->LR, parent->LF /*LF*/, parent->RF /*RF*/, parent->RR /*RR*/);
+		CollisionCheck::rotateRectToTarget(*rotatedParentRect, n.orientation);
+		rec = new collisionRect(rotatedParentRect->Vertex[VertexType::LR] /*LR*/, n.LF /*LF*/, n.RF /*RF*/, rotatedParentRect->Vertex[VertexType::LR] /*RR*/);
+		delete rotatedParentRect;
+	}
+	else
+	{
+		rec = new collisionRect(n.location, n.LR, n.LF, n.RF, n.RR);
+	}
+
+	/// need prediction if this is a moving obstacle.
+	if (CollisionCheck::IsCollision_RecToCircle(*rec, *ObstacleCircle)) return true;
+	delete rec;
+
+	// Step2. Check if the circle shaped area that the robot covers when it rotates. 
+	//          (before it starts moving toward the Node n)
+	float rad = (n.LF.distance(n.RR) / 2);
+	if (parent != nullptr)
+	{
+		collisionCircle *parentRotationCircle = new collisionCircle(parent->location.x, parent->location.y, rad);
+		if (CollisionCheck::IsCollision_CircleToCircle(*parentRotationCircle, *ObstacleCircle)) return true;
+		delete parentRotationCircle;
+	}
+
+	collisionCircle *rotationCircle = new collisionCircle(n.location.x, n.location.y, rad);
+	
+	if (CollisionCheck::IsCollision_CircleToCircle(*rotationCircle, *ObstacleCircle)) return true;
+	delete rotationCircle;
+	delete ObstacleCircle;
+
+	return false;
+#else
+	assert(false); /// use this function only when the robot's shape is rectangle
+	return false;
+#endif
+}
+#endif
 
 #ifdef rectangleRobot
 bool movingObst::isInside(collisionRect &rec)
@@ -364,6 +468,62 @@ bool maze::isCollide(ofVec2f p1, ofVec2f p2)
 	// Need Rectangle(Robot) to Rectangle(Maze wall) isCollide function
 	return rect.intersects(p1,p2);
 }
+
+#ifdef rectangleRobot
+bool maze::isCollide(Nodes &n)
+{
+#ifdef PathCollisionCheck
+	Nodes* parent = n.parent;
+	collisionRect *rec;
+	ofVec2f _LR = { rect.getMinX(), rect.getMinY() };
+	ofVec2f _RR = { rect.getMinX(), rect.getMaxY() };
+	ofVec2f _RF = { rect.getMaxX(), rect.getMaxY() };
+	ofVec2f _LF = { rect.getMaxX(), rect.getMinY()};
+
+	collisionRect *ObstacleRect = new collisionRect(this->loc(), _LR, _RR, _RF, _LF);
+
+	// Step1. Check if the rectangle shaped area that the robot covers when it follows this path. 
+	//          (FROM parent node TO node n)
+	if (parent != nullptr)
+	{
+		collisionRect *rotatedParentRect = new collisionRect(parent->LR, parent->LF /*LF*/, parent->RF /*RF*/, parent->RR /*RR*/);
+		CollisionCheck::rotateRectToTarget(*rotatedParentRect, n.orientation);
+		rec = new collisionRect(rotatedParentRect->Vertex[VertexType::LR] /*LR*/, n.LF /*LF*/, n.RF /*RF*/, rotatedParentRect->Vertex[VertexType::LR] /*RR*/);
+		delete rotatedParentRect;
+	}
+	else
+	{
+		rec = new collisionRect(n.location, n.LR, n.LF, n.RF, n.RR);
+	}
+
+	/// need prediction if this is a moving obstacle.
+	if (CollisionCheck::IsCollision_RectToRect(*rec, *ObstacleRect)) return true;
+	delete rec;
+
+	// Step2. Check if the circle shaped area that the robot covers when it rotates. 
+	//          (before it starts moving toward the Node n)
+	float rad = (n.LF.distance(n.RR) / 2);
+	if (parent != nullptr)
+	{
+		// If there is a parent node, check collision with a circle centered at the parent node.
+		collisionCircle *parentRotationCircle = new collisionCircle(parent->location.x, parent->location.y, rad);
+		if (CollisionCheck::IsCollision_RecToCircle(*ObstacleRect, *parentRotationCircle)) return true;
+		delete parentRotationCircle;
+	}
+
+	// Check collision with a circle centered at the node.
+	collisionCircle *rotationCircle = new collisionCircle(n.location.x, n.location.y, rad);
+	if (CollisionCheck::IsCollision_RecToCircle(*ObstacleRect, *rotationCircle)) return true;
+	delete ObstacleRect;
+
+	return false;
+#else
+	assert(false); /// use this function only when the robot's shape is rectangle
+	return false;
+#endif
+}
+#endif
+
 #ifdef rectangleRobot
 bool maze::isInside(collisionRect &collRec)
 {

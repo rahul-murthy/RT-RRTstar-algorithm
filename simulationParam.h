@@ -9,7 +9,7 @@
 const float inf = std::numeric_limits<float>::infinity();
 //--------------------------------------------------------------ofApp.h
 #define numberOfstaticObst 1
-#define numberOfmovObst 1
+#define numberOfmovObst 3
 #define numberOfobst (numberOfstaticObst+numberOfmovObst)
 #define numberOfmazewall 7
 //--------------------------------------------------------------obstracle.h
@@ -22,7 +22,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #define NODE_RADIUS 3
 //--------------------------------------------------------------Robot.h
 #define sensorRadius 200
-#define mVal 4
+#define mVal 1
 #define mForce 1
 #define accur 1.0
 // #define circularRobot
@@ -32,6 +32,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #define RobotRadius 0
 #define rectangleRobot
 #define predictMovement
+#define PathCollisionCheck
 #endif
 //-------------------------------------------------------------Genral
 #define startx 500
@@ -39,8 +40,8 @@ const float inf = std::numeric_limits<float>::infinity();
 #define goalx 250
 #define goaly 200
 #define converge 50.0
-#define epsilon 25
-#define rrtstarradius 50
+#define epsilon 50
+#define rrtstarradius 70
 #define allowedTimeRewiring 0.5
 #define maxNeighbours 50
 #define minDistClosestNode 5
