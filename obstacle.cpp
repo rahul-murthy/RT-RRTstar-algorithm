@@ -263,6 +263,7 @@ void movingObst::move(std::list<obstacles*> obst)
 	{
 #if 0
 		ofVec2f temp, maxForce, maxVelocity;
+        ofGetElapsedTimef();
 		for (auto i : obst) {
 			ofVec2f dir = location - i->loc();
 			float accel = 1 / (dir.length() *dir.length());
