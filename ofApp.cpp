@@ -88,7 +88,7 @@ void ofApp::setup() {
 		{(float)400/*0.4 * ofGetWidth()*/, (float)260/*0.35 * ofGetHeight()*/},
 		{(float)0.9 * ofGetWidth(), (float)260/*0.35 * ofGetHeight()*/},
 	};
-	ofVec2f arrMovObsVector[numberOfmovObst] = { {-0.5, 0}, {0, -0.5}, {-1, 0} };
+	ofVec2f arrMovObsVector[numberOfmovObst] = { {-1, 0}, {0, -1}, {-1, 0} };
 	
 	for (unsigned int i = 0; i < numberOfmovObst; i++)
 	{

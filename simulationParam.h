@@ -1,6 +1,5 @@
 #pragma once
 #include "ofMain.h"
-
 #include <limits>
 //#define randomSeed 5
 #define CLK
@@ -22,7 +21,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #define NODE_RADIUS 3
 //--------------------------------------------------------------Robot.h
 #define sensorRadius 200
-#define mVal 1
+#define mVal 2
 #define mForce 1
 #define accur 1.0
 // #define circularRobot
@@ -40,7 +39,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #define goalx 250
 #define goaly 200
 #define converge 50.0
-#define epsilon 50
+#define epsilon 30
 #define rrtstarradius 70
 #define allowedTimeRewiring 0.5
 #define maxNeighbours 50

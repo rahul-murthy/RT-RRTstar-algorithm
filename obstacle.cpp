@@ -259,11 +259,10 @@ void movingObst::move(char key)
 #ifdef automatic
 void movingObst::move(std::list<obstacles*> obst)
 {
-	if (SMP::goalFound)
+	if (SMP::goalFound || (SMP::movingStartTime != 0))
 	{
 #if 0
 		ofVec2f temp, maxForce, maxVelocity;
-        ofGetElapsedTimef();
 		for (auto i : obst) {
 			ofVec2f dir = location - i->loc();
 			float accel = 1 / (dir.length() *dir.length());
@@ -380,6 +379,32 @@ bool movingObst::isInside(collisionRect &rec, float time)
 	collisionCircle circle = collisionCircle(predictedLocation, this->rad());
 
 	return CollisionCheck::IsCollision_RecToCircle(rec, circle);
+}
+
+bool movingObst::closeEnough(ofVec2f targetLocation, float nTargetRadius)
+{
+	float dist1 = location.distance(targetLocation);
+
+	if (dist1 < nTargetRadius + radius)
+	{
+		return true;
+	}
+
+	ofVec2f tmpFutureLoc = targetLocation + velocity;
+	float dist2 = tmpFutureLoc.distance(targetLocation);
+
+	if (dist2 < dist1)
+	{
+		float speed = velocity.length();
+		float time = dist1 / speed;
+
+		if (time < 3)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 #endif
 #else	// when robot is a point with no area.

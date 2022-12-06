@@ -4,7 +4,7 @@
 void Robot::setup()
 {
 //        alive = true; mass = 5.0; scanRadius = sensorRadius; accuracy = accur;
-        alive = true; mass = 5.0; scanRadius = sqrt((1+4) * robotSizeValue* robotSizeValue); accuracy = accur;
+        alive = true; mass = 5.0; scanRadius = 3 * sqrt((1+4) * robotSizeValue* robotSizeValue); accuracy = accur;
         //battery = 100;
         //float x = ofRandom(0, ofGetWindowWidth()); float y = ofRandom(0, ofGetWindowHeight());`
         location.set(0.0,0.0);
@@ -34,7 +34,7 @@ void Robot::setup()
 
 void Robot::setup(ofVec2f loc)
 {
-    alive = true; mass = 5.0; scanRadius = sqrt((1 + 4) * robotSizeValue* robotSizeValue); accuracy = accur;
+    alive = true; mass = 5.0; scanRadius = 3 * sqrt((1 + 4) * robotSizeValue* robotSizeValue); accuracy = accur;
     location = loc;
     HOME = location;
     velocity.set(0.0, 0.0);
@@ -130,7 +130,7 @@ void Robot::render()
     ofVertex(-2 * r, -r);		// LR
 	ofVertex(-2 * r, r);		// RR
 	ofVertex(2 * r, r);		// RF
-	// ofVertex(2 * r, -r);		// LF
+	ofVertex(2 * r, -r);		// LF
 #else
 	// Triangle Shape (only rendering. The actual robot shape is a point)
 	// ofVertex(0, -r * 2);
@@ -142,7 +142,7 @@ void Robot::render()
     ofPopMatrix();
     ofSetColor(color, 80);
     ofDrawCircle(location.x, location.y, ofGetFrameNum() % int(scanRadius));
-    ofNoFill();
+    ofFill();
     ofDisableAlphaBlending();
 }
 
@@ -158,19 +158,6 @@ void Robot::controller(ofVec2f target)
     //error *= 1.5;
     //accelaration = error;
     float m;
-#if 0
-    if (error.length() < converge) {
-        m = ofMap(error.length(), 0, converge, 0, mVal);
-    }
-    else {
-        m = mVal;
-    }
-
-    ofVec2f temp = error.normalized()*m;
-    ofVec2f steer = (temp - velocity);
-    steer = (steer.length() <= maxForce.length()) ? steer : (steer.normalized() *mForce);
-    addForce(steer); 
-#else
 	if ((velocity.length() != 0) && (controlTargetReached == false) && (error.length() < 4/*converge*/)) 
 	{
 			controlTargetReached = true;
@@ -181,10 +168,12 @@ void Robot::controller(ofVec2f target)
 	else
 	{
 		velocity = error.normalize() * mVal;
-		orientation = velocity.normalized();
+		if (velocity.length() != 0)
+		{
+			orientation = velocity.normalized();
+		}
 		controlTargetReached = false;
 	}
-#endif
 }
 
 bool Robot::isStartedMoving(void)
@@ -225,18 +214,95 @@ bool Robot::controller(ofVec2f target, ofVec2f targetVel)
 
 void Robot::fillEnviroment(const list<obstacles*> obst, list<Nodes>& node)
 {
+	bool bCloseToMovingObst = false;
+
     //check for enviroment
     for (auto index : obst) {
-        float dist = this->location.distance(index->loc());
+#if 0
+        /*float dist = this->location.distance(index->loc());
         if (dist <= this->scanRadius + index->rad()) {
             updateEnviroment(node, index);
-        }
+        }*/
+#else
+		if (index->closeEnough(this->location, scanRadius))
+		{
+			// if any of the moving obstacles is close enough,
+			bCloseToMovingObst = true;
+			break;
+		}
+#endif
     }
+
+	if (bCloseToMovingObst)
+	{
+		updateEnvForAllObstacles(node, obst);
+	}
 }
 
-void Robot::updateEnviroment(list<Nodes>& node,obstacles *obst)
+void Robot::updateEnvForAllObstacles(list<Nodes> &node, const list<obstacles*> obstList)
+{
+	std::list<Nodes>::iterator it = node.begin();
+
+	// curr path to goal exists OR the environment is currently moving
+	if ((SMP::goalFound == true) || (SMP::movingStartTime != 0))
+	{
+		while (it != node.end())	// for every node
+		{
+			// Add the Node to the tree again
+			it->alive = true;
+			for (auto obst : obstList)
+			{
+				if (obst->isMovingObst() == false) { continue; }
+				float dist = this->location.distance(obst->loc());
+				if (dist <= this->scanRadius + obst->rad())
+				{
+					bool bIsCollision = obst->isCollide(*it);
+					if (bIsCollision == true)
+					{
+						//it->costToStart = inf;
+						it->alive = false;
+						break;
+					}
+				}
+			}
+			it++;
+		}
+	}
+}
+
+void Robot::updateEnviroment(list<Nodes> &node, obstacles *obst)
 {
     std::list<Nodes>::iterator it = node.begin();
+
+	if ((SMP::goalFound == true) || (SMP::movingStartTime != 0))
+	{
+		// Once the robot starts moving, only check the moving obstacles
+		if (obst->isMovingObst() == true) 
+		{
+			while (it != node.end())
+			{
+				float dist = this->location.distance(obst->loc());
+				if (dist <= this->scanRadius + obst->rad())
+				{
+					bool bIsCollision = obst->isCollide(*it);
+					if (bIsCollision == true)
+					{
+						//it->costToStart = inf;
+						it->alive = false;
+					}
+					else
+					{
+						// Add the Node to the tree again
+						it->alive = true;
+					}
+				}
+				it++;
+			}
+		}
+		// if not moving obstacle, no need to check
+		return;
+	}
+
     while (it != node.end())
     {
         float dist = it->location.distance(obst->loc());
@@ -246,21 +312,19 @@ void Robot::updateEnviroment(list<Nodes>& node,obstacles *obst)
         }
         it++;
     }
+
 	// updateVertices();
 }
 
 #ifdef rectangleRobot
 void Robot::updateVertices()
 {
-#if 0
-    ofVec2f _LR, _RR, _RF, _LF;
-#else
 	float r = robotSizeValue;
 	glm::vec4 _LR = { -2 * r, -r, 0, 1 };
 	glm::vec4 _RR = { -2 * r, r, 0, 1 };
 	glm::vec4 _RF = { 2 * r, r, 0, 1 };
 	glm::vec4 _LF = { 2 * r, -r, 0, 1 };
-#endif
+
 	ofVec2f axisX = { 1,0 };
 	ofVec2f orientation = velocity.normalized();
     // float theta = ofRadToDeg(atan2(velocity.y, velocity.x));
@@ -279,43 +343,6 @@ void Robot::updateVertices()
 		theta *= -1;
 	}
 
-#if 0
-	ofVec2f tmp1, tmp2;
-	tmp1.set(cos(theta), -sin(theta));
-	tmp2.set(sin(theta), cos(theta));
-
-    // Set origin
-    // Get 4 corners
-    // Do the rotation metric on 4 points
-    // Shift back to original spot by adding original x and y
-    // Have the current location of the 4 corners
-
-	// Get 4 corners around origin
-	//  [new ordering ]
-	//  LR(-2, -1)	LF (2, -1)
-	//  RR(-2, 1)		RF (2, 1)	
-	_LR.set(-2 * r, -r);
-	_RR.set(-2 * r, r);
-	_RF.set(2 * r, r);
-	_LF.set(2 * r, -r);
-
-	// Do the rotation metric
-	_LR.set((tmp1.x*_LR.x + tmp1.y*_LR.y), (tmp2.x*_LR.x + tmp2.y*_LR.y));
-	_RR.set((tmp1.x*_RR.x + tmp1.y*_RR.y), (tmp2.x*_RR.x + tmp2.y*_RR.y));
-	_RF.set((tmp1.x*_RF.x + tmp1.y*_RF.y), (tmp2.x*_RF.x + tmp2.y*_RF.y));
-	_LF.set((tmp1.x*_LF.x + tmp1.y*_LF.y), (tmp2.x*_LF.x + tmp2.y*_LF.y));
-
-	// Shift back
-	_LR.set(_LR.x + location.x, _LR.y + location.y);
-	_RR.set(_RR.x + location.x, _RR.y + location.y);
-	_RF.set(_RF.x + location.x, _RF.y + location.y);
-	_LF.set(_LF.x + location.x, _LF.y + location.y);
-
-	this->LR = _LR;
-	this->RR = _RR;
-	this->RF = _RF;
-	this->LF = _LF;
-#else
 	glRotatef(theta, 0, 0, 1);
 
 	_LR = {-2 * r, -r, 0, 1};
@@ -338,7 +365,6 @@ void Robot::updateVertices()
 	this->RR = { _RR.x, _RR.y };
 	this->RF = { _RF.x, _RF.y };
 	this->LF = { _LF.x, _LF.y };
-#endif
 }
 
 ofVec2f Robot::getVertex(VertexType eVertexType)

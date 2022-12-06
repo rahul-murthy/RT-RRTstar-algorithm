@@ -79,8 +79,9 @@ public:
 	void setColor(ofColor &newColor) { color = newColor; }
 	ofVec2f getMaxVelocity() { return maxVelocity; }
 	ofVec2f getVelocity() { return velocity; }
-	void fillEnviroment(const list<obstacles*> obst,list<Nodes> &node);
+	void fillEnviroment(const list<obstacles*> obst, list<Nodes> &node);
 	void updateEnviroment(list<Nodes> &node, obstacles *obst);
+	void updateEnvForAllObstacles(list<Nodes> &node, const list<obstacles*> obstList);
 	bool isStartedMoving();
 	void setOrientation(ofVec2f ori) { orientation = ori; };
 	ofVec2f getOrientation() { return orientation; }

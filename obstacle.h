@@ -30,7 +30,8 @@ public:
 	virtual bool isInside(collisionRect &rec);
 #ifdef predictMovement
 	virtual bool isInside(collisionRect &rec, float time);
-	virtual bool isMovingObst() { return false; };	
+	virtual bool isMovingObst() { return false; };
+	virtual bool closeEnough(ofVec2f targetLocation, float nTargetRadius) { return false; };	// only for moving obstacles
 #endif
 #else
 	// robot(point) collides with this static obstacle(circle)
@@ -72,6 +73,7 @@ public:
 #ifdef predictMovement
 	bool isInside(collisionRect &rec, float time);
 	bool isMovingObst() { return true; };
+	bool closeEnough(ofVec2f targetLocation, float nTargetRadius);
 #endif
 #else
 	// robot(point) collides with this moving obstacle(circle)
@@ -113,6 +115,7 @@ public:
 #ifdef predictMovement
 	bool isInside(collisionRect &rec, float time);
 	bool isMovingObst() { return false; };
+	bool closeEnough(ofVec2f targetLocation, float nTargetRadius) { return false; };	// only for moving obstacles
 #endif
 #else
 	// robot(point) collides with this moving obstacle(rectangle)

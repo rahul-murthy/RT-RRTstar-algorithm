@@ -153,6 +153,7 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 			isInside = true;
 #endif
 		}
+
 		// no collision at this moment
 		if (isInside == false)
 		{
@@ -274,10 +275,12 @@ inline void Enviroment::render()
 		ofSetColor({ 10,10,10 },150);
 
 		if (i.costToStart == inf) ofSetColor({ 200,0,0 },120);
+		if (i.alive == false) ofSetColor({ 200,0,0 }, 120);
 		
 		ofSetLineWidth(2);
 		if (i.parent != NULL) {
-			ofPoint pt;ofPolyline line;
+			ofPoint pt;
+			ofPolyline line;
 			pt.set(i.location.x, i.location.y);line.addVertex(pt);
 			pt.set(i.parent->location.x, i.parent->location.y);line.addVertex(pt);
 			line.draw();

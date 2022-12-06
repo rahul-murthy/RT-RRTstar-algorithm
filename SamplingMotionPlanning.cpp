@@ -4,6 +4,8 @@
 #include "simulationParam.h"
 #include "RT-RRTstar.h"
 
+// Set current time as moving start time.
+float SMP::movingStartTime = 0;
 bool SMP::goalFound = false;
 bool SMP::goal1Found = false;
 bool SMP::goal2Found = false;
@@ -33,13 +35,13 @@ void SMP::addNode(Nodes n, std::list<Nodes>& nodes)
 	nodes.push_back(n);
 	if (n.location.distance(goal1) < converge)
 	{
-		goalFound = true;
+		goal1Found = true;
 		sampledInGoalRegion = true;
 		target = &(nodes.back());
 	}
-	else if (n.location.distance(goal2) < converge);
+	else if (n.location.distance(goal2) < converge)
 	{
-		goalFound = true;
+		goal2Found = true;
 		sampledInGoalRegion = true;
 		target = &(nodes.back());
 	}
@@ -302,10 +304,11 @@ Nodes InformedRRTstar::sample(float c_max)
 
 void RTRRTstar::nextIter(std::list<Nodes> &nodes, const std::list<obstacles*>& obst, Robot* agent)
 {
+	bool bIsPathObstructed = false;
 	timeKeeper = ofGetElapsedTimef();
 	expandAndRewire(nodes, obst);
 	if (SMP::goalFound)
-		updateNextBestPath();
+		bIsPathObstructed = updateNextBestPath();
 	if (currPath.size() > 1 && agent->getLocation().distance(SMP::root->location) < 0.1)
 	{
 		//We have to pre-increment rather than post-increment
@@ -315,6 +318,11 @@ void RTRRTstar::nextIter(std::list<Nodes> &nodes, const std::list<obstacles*>& o
 		RTRRTstar::visited_set.clear();
 		pushedToRewireRoot.clear();
 		rewireRoot.clear();
+	}
+
+	if (bIsPathObstructed)
+	{
+		SMP::goalFound = false;
 	}
 	closestNeighbours.clear();
 }
@@ -367,25 +375,60 @@ void RTRRTstar::expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacl
 		}
 		// rewireRandomNode(obst, nodes);
 	}
-	// rewireFromRoot(obst, nodes);
+	 rewireFromRoot(obst, nodes);
 }
 
-void RTRRTstar::updateNextBestPath()
+bool RTRRTstar::updateNextBestPath()
 {
+	bool bIsPathObstructed = false;
 	std::list<Nodes*> updatedPath;
 	Nodes *pathNode = target;
 	if (SMP::goalFound) {
+		std::list<float> tmpDeltaTimeList;
 		do
 		{
+			float delta_time;
+			// check if one of the nodes in the path got obstructed
+			if (pathNode->alive == false) { bIsPathObstructed = true; }
+			if (pathNode->parent != NULL)
+			{
+				float dist = pathNode->location.distance(pathNode->parent->location);
+				delta_time = dist / mVal;
+			}
+			else
+			{
+				// if the pathNode is root, set time as 0.
+				delta_time = 0;
+			}
+			tmpDeltaTimeList.push_back(delta_time);
+
 			currPath.push_back(pathNode);
 			pathNode = pathNode->parent;
 		} while (pathNode != NULL);
+
+		// reverse path
 		currPath.reverse();
-		return;
+
+		// update the time values
+		tmpDeltaTimeList.reverse();
+
+		float accumulatedTime = 0;
+		std::list<Nodes*>::iterator iterNode = currPath.begin();
+		std::list<float>::iterator iterTime = tmpDeltaTimeList.begin();
+		for (int i = 0; i < tmpDeltaTimeList.size(); i++)
+		{
+			accumulatedTime += (*iterTime);
+			(*iterNode)->time = accumulatedTime;
+
+			iterNode++;
+			iterTime++;
+		}
+
+		return bIsPathObstructed;
 	}
 	else {
 		if (!goalDefined)
-			return;
+			return bIsPathObstructed;
 		Nodes* curr_node = SMP::root;
 		while (!curr_node->children.empty())
 		{
@@ -416,7 +459,8 @@ void RTRRTstar::updateNextBestPath()
 		if (updatedPath.back()->location.distance(SMP::goal1) < currPath.back()->location.distance(SMP::goal1))
 			currPath = updatedPath;
 	}
-	
+
+	return bIsPathObstructed;
 }
 
 Nodes RTRRTstar::sample()
@@ -585,7 +629,6 @@ void RTRRTstar::addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const 
 			SMP::goalFound = true;
 		}
 	}
-	
 	else if (n.location.distance(SMP::goal2) < converge)
 	{
 		if (SMP::target2 == NULL || (SMP::target2 != NULL && SMP::target2->costToStart > n.costToStart))
@@ -596,10 +639,11 @@ void RTRRTstar::addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const 
 		if (SMP::goal1Found == true) 
 		{
 			SMP::goalFound = true;
-			// select one of the two targets and assign that to the SMP::target
+			// Set current time as moving start time.
 		}
 	}
 
+	// select one of the two targets and assign that to the SMP::target
 	if (SMP::goalFound == true)
 	{
 		std::list<Nodes*> target1Path;
@@ -644,6 +688,9 @@ void RTRRTstar::addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const 
 			goal = goal2;
 			target = target2;
 		}
+
+		// Set current time as moving start time.
+		SMP::movingStartTime = ofGetElapsedTimef();
 	}
 	
 	//TODO: Add the node to the Grid based/KD-Tree Data structure
@@ -658,7 +705,7 @@ float RTRRTstar::cost(Nodes* node)
 	Nodes* curr = node;
 	while (curr->parent != NULL)			// This is where the code gets trapped in an infinite loop!!!
 	{
-		if (curr->parent == curr) { break; }
+		// if (curr->parent == curr) { break; }
 		if (curr->parent->costToStart == inf)
 		{
 			node->costToStart = inf;
@@ -702,7 +749,7 @@ void RTRRTstar::rewireRandomNode(const list<obstacles*> &obst, std::list<Nodes> 
 			// update the node based on parent node
 			bool IsCollision = false;
 			Nodes tmp = *(*it);
-#if 0
+#if 01
 			InitNode(tmp, *Xr);
 			if (!SMP::checkSample(tmp, obst)) { IsCollision = true; }
 			if (!IsCollision && SMP::checkCollision(tmp, *Xr, obst)) { IsCollision = true; }
@@ -711,7 +758,7 @@ void RTRRTstar::rewireRandomNode(const list<obstacles*> &obst, std::list<Nodes> 
 			float newCost = cost_ + Xr->location.distance((*it)->location);
 			if (!IsCollision && (newCost < oldCost))
 			{
-#if 0
+#if 01
 				// update the node based on parent node
 				InitNode(*(*it), *Xr);
 #endif
@@ -738,56 +785,56 @@ void RTRRTstar::rewireFromRoot(const list<obstacles*> &obst, std::list<Nodes> &n
 	}
 
 	while (!rewireRoot.empty() && (ofGetElapsedTimef() - timeKeeper) < allowedTimeRewiring) 
+	{
+		Nodes* Xs = rewireRoot.front();
+		rewireRoot.pop_front();
+		std::list<Nodes*> nearNeighbours;
+		nearNeighbours = RRTstar::findClosestNeighbours(*Xs, nodes);
+
+		std::list<Nodes*>::iterator it = nearNeighbours.begin();
+		std::list<Nodes*> safeNeighbours;
+		while (it != nearNeighbours.end())
 		{
-			Nodes* Xs = rewireRoot.front();
-			rewireRoot.pop_front();
-			std::list<Nodes*> nearNeighbours;
-			nearNeighbours = RRTstar::findClosestNeighbours(*Xs, nodes);
+			if (SMP::checkCollision(*Xs, *(*it), obst))
+				safeNeighbours.push_back(*it);
+			it++;
+		}
+		if (safeNeighbours.empty()) continue;
 
-			std::list<Nodes*>::iterator it = nearNeighbours.begin();
-			std::list<Nodes*> safeNeighbours;
-			while (it != nearNeighbours.end())
-			{
-				if (SMP::checkCollision(*Xs, *(*it), obst))
-					safeNeighbours.push_back(*it);
-				it++;
-			}
-			if (safeNeighbours.empty()) continue;
+		safeNeighbours.remove(Xs->parent);
+		it = safeNeighbours.begin();
+		while (it != safeNeighbours.end()) {
 
-			safeNeighbours.remove(Xs->parent);
-			it = safeNeighbours.begin();
-			while (it != safeNeighbours.end()) {
-
-				// update the node based on parent node
-				bool IsCollision = false;
-#if 0
-				Nodes tmp = *(*it);
-				InitNode(tmp, *Xs);
-				if (!SMP::checkSample(tmp, obst)) { IsCollision = true; }
-				if (!IsCollision && SMP::checkCollision(tmp, *Xs, obst)) { IsCollision = true; }
+			// update the node based on parent node
+			bool IsCollision = false;
+#if 01
+			Nodes tmp = *(*it);
+			InitNode(tmp, *Xs);
+			if (!SMP::checkSample(tmp, obst)) { IsCollision = true; }
+			if (!IsCollision && SMP::checkCollision(tmp, *Xs, obst)) { IsCollision = true; }
 #endif
-				float oldCost = cost(*it);
-				float newCost = cost(Xs) + Xs->location.distance((*it)->location);
-				if (!IsCollision && (newCost < oldCost)) {
-#if 0
-					InitNode(*(*it), *Xs);
+			float oldCost = cost(*it);
+			float newCost = cost(Xs) + Xs->location.distance((*it)->location);
+			if (!IsCollision && (newCost < oldCost)) {
+#if 01
+				InitNode(*(*it), *Xs);
 #endif
-					(*it)->prevParent = (*it)->parent;
-					(*it)->parent->children.remove(*it);
-					(*it)->parent = Xs;
-					(*it)->costToStart = newCost;
-					Xs->children.push_back(*it);
-				}
-				//TODO: take care of restarting the queue part
-				bool found = std::find(pushedToRewireRoot.begin(), pushedToRewireRoot.end(), (*it)) != pushedToRewireRoot.end();
-				if (!found) {
-					rewireRoot.push_back((*it));
-					pushedToRewireRoot.push_back((*it));
-				}
-				it++;
+				(*it)->prevParent = (*it)->parent;
+				(*it)->parent->children.remove(*it);
+				(*it)->parent = Xs;
+				(*it)->costToStart = newCost;
+				Xs->children.push_back(*it);
 			}
+			//TODO: take care of restarting the queue part
+			bool found = std::find(pushedToRewireRoot.begin(), pushedToRewireRoot.end(), (*it)) != pushedToRewireRoot.end();
+			if (!found) {
+				rewireRoot.push_back((*it));
+				pushedToRewireRoot.push_back((*it));
+			}
+			it++;
 		}
 	}
+}
 
 float RTRRTstar::getHeuristic(Nodes* u) {
 	if (visited_set.find(u) != visited_set.end())

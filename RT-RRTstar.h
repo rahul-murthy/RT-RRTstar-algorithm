@@ -20,7 +20,7 @@ public:
 	std::list<Nodes*> currPath;
 private:
 	void expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacles*>& obst);
-	void updateNextBestPath();
+	bool updateNextBestPath();
 	Nodes sample();
 #ifdef rectangleRobot
 	void InitNode(Nodes &sampledNode, Nodes &closestNode);
