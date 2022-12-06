@@ -23,7 +23,7 @@ private:
 	bool updateNextBestPath();
 	Nodes sample();
 #ifdef rectangleRobot
-	void InitNode(Nodes &sampledNode, Nodes &closestNode);
+	bool InitNode(Nodes &sampledNode, Nodes &closestNode);
 	//Nodes sample(Robot& robot);
 #endif
 	Nodes* getClosestNeighbour(Nodes u, std::list<Nodes>& nodes);

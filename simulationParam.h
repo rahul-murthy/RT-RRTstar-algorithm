@@ -32,6 +32,7 @@ const float inf = std::numeric_limits<float>::infinity();
 #define rectangleRobot
 #define predictMovement
 #define PathCollisionCheck
+#define PlusMinusTurnLimit 60
 #endif
 //-------------------------------------------------------------Genral
 #define startx 500

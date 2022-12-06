@@ -358,7 +358,7 @@ void RTRRTstar::expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacl
 #ifdef rectangleRobot
 	// Set variables of Node u other than it's center location, using parent node's information.
 	if (nodes.size() != 0) {
-		InitNode((*pu), *v);
+		if(InitNode((*pu), *v) == false) return;
 	}
 #endif
 
@@ -373,7 +373,7 @@ void RTRRTstar::expandAndRewire(std::list<Nodes>& nodes, const std::list<obstacl
 		{
 			this->rewireRand.push_front(v);
 		}
-		// rewireRandomNode(obst, nodes);
+		rewireRandomNode(obst, nodes);
 	}
 	 rewireFromRoot(obst, nodes);
 }
@@ -487,7 +487,7 @@ Nodes RTRRTstar::sample()
 }
 
 #ifdef rectangleRobot
-void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
+bool RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 {
 	ofVec2f closestCenter = closestNode.location;
 	ofVec2f newNodeCenter = newNode.location;
@@ -517,6 +517,7 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	float cos_theta = xAxis.dot(newNode.orientation);
 	if (cos_theta > 1) { cos_theta = 1; }
 	else if (cos_theta < -1) { cos_theta = -1; }
+
 	float theta = ofRadToDeg(glm::acos(cos_theta));  // glm::acos() returns [0:PI]. 
 
 	newNode.thetaXaxis = ofRadToDeg(atan2(orientation.y, orientation.x));
@@ -535,6 +536,38 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 		// assert(((theta >= 0) && (theta < 0.05)) || 
 		//	((theta > 179.95) && (theta <= 180)));
 	}
+
+
+#ifdef PlusMinusTurnLimit
+	// calculate diff of theta
+	float cos_thetaOriginal = xAxis.dot(closestNode.orientation);
+	if (cos_thetaOriginal > 1) { cos_thetaOriginal = 1; }
+	else if (cos_thetaOriginal < -1) { cos_thetaOriginal = -1; }
+	float thetaOriginal = ofRadToDeg(glm::acos(cos_thetaOriginal));
+
+	float crossProductOriginal = (xAxis.x * closestNode.orientation.y) - (xAxis.y * closestNode.orientation.x);
+
+	if (crossProductOriginal > 0) {
+		// counter clockwise rotation. (+)
+	}
+	else if (crossProductOriginal < 0) {
+		// clockwise rotation (-)
+		thetaOriginal *= -1;
+	}
+	else {
+		// assert(((theta >= 0) && (theta < 0.05)) || 
+		//	((theta > 179.95) && (theta <= 180)));
+	}
+
+	// calculate diff
+	float diff = thetaOriginal - theta;
+	diff = (diff < 0) ? (diff * -1) : diff;
+
+	if (diff > 180) diff = (360 - diff);
+	if (diff > PlusMinusTurnLimit) { return false; }
+#endif
+
+
 
 	glRotatef(theta, 0, 0, 1);
 
@@ -565,6 +598,8 @@ void RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	double delta_t = dist / mVal;
 
 	newNode.time = closestNode.time + delta_t;
+
+	return true;
 }
 #endif
 
@@ -750,7 +785,7 @@ void RTRRTstar::rewireRandomNode(const list<obstacles*> &obst, std::list<Nodes> 
 			bool IsCollision = false;
 			Nodes tmp = *(*it);
 #if 01
-			InitNode(tmp, *Xr);
+			if (InitNode(tmp, *Xr) == false) { IsCollision = true; }
 			if (!SMP::checkSample(tmp, obst)) { IsCollision = true; }
 			if (!IsCollision && SMP::checkCollision(tmp, *Xr, obst)) { IsCollision = true; }
 #endif
@@ -760,7 +795,7 @@ void RTRRTstar::rewireRandomNode(const list<obstacles*> &obst, std::list<Nodes> 
 			{
 #if 01
 				// update the node based on parent node
-				InitNode(*(*it), *Xr);
+				if (InitNode(*(*it), *Xr) == false) { it++; continue; }
 #endif
 				(*it)->prevParent = (*it)->parent;
 				(*it)->parent->children.remove(*it);
