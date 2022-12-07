@@ -539,35 +539,37 @@ bool RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 
 
 #ifdef PlusMinusTurnLimit
-	// calculate diff of theta
-	float cos_thetaOriginal = xAxis.dot(closestNode.orientation);
-	if (cos_thetaOriginal > 1) { cos_thetaOriginal = 1; }
-	else if (cos_thetaOriginal < -1) { cos_thetaOriginal = -1; }
-	float thetaOriginal = ofRadToDeg(glm::acos(cos_thetaOriginal));
+	// No theta limit for first node
+	if (closestNode.velocity.length() != 0)
+	{
+		// calculate diff of theta
+		float cos_thetaOriginal = xAxis.dot(closestNode.orientation);
+		if (cos_thetaOriginal > 1) { cos_thetaOriginal = 1; }
+		else if (cos_thetaOriginal < -1) { cos_thetaOriginal = -1; }
+		float thetaOriginal = ofRadToDeg(glm::acos(cos_thetaOriginal));
 
-	float crossProductOriginal = (xAxis.x * closestNode.orientation.y) - (xAxis.y * closestNode.orientation.x);
+		float crossProductOriginal = (xAxis.x * closestNode.orientation.y) - (xAxis.y * closestNode.orientation.x);
 
-	if (crossProductOriginal > 0) {
-		// counter clockwise rotation. (+)
+		if (crossProductOriginal > 0) {
+			// counter clockwise rotation. (+)
+		}
+		else if (crossProductOriginal < 0) {
+			// clockwise rotation (-)
+			thetaOriginal *= -1;
+		}
+		else {
+			// assert(((theta >= 0) && (theta < 0.05)) || 
+			//	((theta > 179.95) && (theta <= 180)));
+		}
+
+		// calculate diff
+		float diff = thetaOriginal - theta;
+		diff = (diff < 0) ? (diff * -1) : diff;
+
+		if (diff > 180) diff = (360 - diff);
+		if (diff > PlusMinusTurnLimit) { return false; }
 	}
-	else if (crossProductOriginal < 0) {
-		// clockwise rotation (-)
-		thetaOriginal *= -1;
-	}
-	else {
-		// assert(((theta >= 0) && (theta < 0.05)) || 
-		//	((theta > 179.95) && (theta <= 180)));
-	}
-
-	// calculate diff
-	float diff = thetaOriginal - theta;
-	diff = (diff < 0) ? (diff * -1) : diff;
-
-	if (diff > 180) diff = (360 - diff);
-	if (diff > PlusMinusTurnLimit) { return false; }
 #endif
-
-
 
 	glRotatef(theta, 0, 0, 1);
 
