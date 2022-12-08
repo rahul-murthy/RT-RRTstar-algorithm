@@ -551,7 +551,7 @@ bool RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 		float crossProductOriginal = (xAxis.x * closestNode.orientation.y) - (xAxis.y * closestNode.orientation.x);
 
 		if (crossProductOriginal > 0) {
-			// counter clockwise rotation. (+)
+			// counter clockwise rotation. (+)e
 		}
 		else if (crossProductOriginal < 0) {
 			// clockwise rotation (-)

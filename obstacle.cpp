@@ -7,7 +7,7 @@ obstacles::obstacles()
 	float y = ofRandom(0, ofGetWindowHeight());
 	location.set(x, y);
 	radius = ofRandom(10, 20);
-	color = { 200,50,10 };
+	color = { 10,10,50 }; // { 200,50,10 };
 	mass = 3.14*radius*radius;
 }
 
@@ -15,7 +15,7 @@ obstacles::obstacles(ofVec2f loc)
 {
 	location = loc;
 	radius = ofRandom(10, 20);
-	color = { 200,50,10 };
+	color = { 10,10,50 };
 	mass = 3.14*radius*radius;
 }
 
@@ -23,7 +23,7 @@ obstacles::obstacles(ofVec2f loc, float _rad)
 {
 	location = loc;
 	radius = _rad;
-	color = { 200,50,10 };
+	color = { 10,10,50 };
 	mass = 3.14*radius*radius;
 }
 
