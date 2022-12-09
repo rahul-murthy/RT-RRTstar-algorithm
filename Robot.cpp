@@ -218,17 +218,17 @@ void Robot::fillEnviroment(const list<obstacles*> obst, list<Nodes>& node)
 
     //check for enviroment
     for (auto index : obst) {
-#if 0
-        /*float dist = this->location.distance(index->loc());
-        if (dist <= this->scanRadius + index->rad()) {
-            updateEnviroment(node, index);
-        }*/
-#else
+#ifdef predictMovement
 		if (index->closeEnough(this->location, scanRadius))
 		{
 			// if any of the moving obstacles is close enough,
 			bCloseToMovingObst = true;
 			break;
+		}
+#else
+		float dist = this->location.distance(index->loc());
+		if (dist <= this->scanRadius + index->rad()) {
+			updateEnviroment(node, index);
 		}
 #endif
     }

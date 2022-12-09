@@ -599,7 +599,7 @@ bool RTRRTstar::InitNode(Nodes &newNode, Nodes &closestNode)
 	double dist = closestCenter.distance(newNodeCenter);
 	double delta_t = dist / mVal;
 
-	newNode.time = closestNode.time + delta_t;
+	newNode.time = closestNode.time + delta_t; 
 
 	return true;
 }

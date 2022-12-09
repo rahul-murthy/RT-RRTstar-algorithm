@@ -320,7 +320,11 @@ bool movingObst::isCollide(Nodes &n)
 	collisionRect *rec;
 	float timeDiff = n.time;
 	/// need prediction if this is a moving obstacle.
+#ifdef predictMovement
 	collisionCircle *ObstacleCircle = new collisionCircle(this->loc() + (velocity * timeDiff), this->rad());
+#else
+	collisionCircle *ObstacleCircle = new collisionCircle(this->loc(), this->rad());
+#endif
 
 
 	// Step1. Check if the rectangle shaped area that the robot covers when it follows this path. 

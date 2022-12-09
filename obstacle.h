@@ -28,9 +28,9 @@ public:
 	virtual bool isCollide(Nodes &n);
 	// robot(rectangle) collides with this static obstacle(circle)
 	virtual bool isInside(collisionRect &rec);
+	virtual bool isMovingObst() { return false; };
 #ifdef predictMovement
 	virtual bool isInside(collisionRect &rec, float time);
-	virtual bool isMovingObst() { return false; };
 	virtual bool closeEnough(ofVec2f targetLocation, float nTargetRadius) { return false; };	// only for moving obstacles
 #endif
 #else
@@ -70,9 +70,9 @@ public:
     bool isCollide(Nodes &n);
 	// robot(rectangle) collides with this moving obstacle(circle)
 	bool isInside(collisionRect &rec);
+	bool isMovingObst() { return true; };
 #ifdef predictMovement
 	bool isInside(collisionRect &rec, float time);
-	bool isMovingObst() { return true; };
 	bool closeEnough(ofVec2f targetLocation, float nTargetRadius);
 #endif
 #else
@@ -111,10 +111,10 @@ public:
 	// check if a path between node n and its parent is in collision with this obstacle
 	bool isCollide(Nodes &n);
 	// robot(rectangle) collides with this maze(rectangle)
-	bool isInside(collisionRect &collRec); 
+	bool isInside(collisionRect &collRec);
+	bool isMovingObst() { return false; };
 #ifdef predictMovement
 	bool isInside(collisionRect &rec, float time);
-	bool isMovingObst() { return false; };
 	bool closeEnough(ofVec2f targetLocation, float nTargetRadius) { return false; };	// only for moving obstacles
 #endif
 #else
