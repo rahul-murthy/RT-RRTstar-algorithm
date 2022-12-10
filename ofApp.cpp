@@ -86,9 +86,13 @@ void ofApp::setup() {
 	ofVec2f arrMovObsLocation[numberOfmovObst] = { 
 		{(float)400/*0.4 * ofGetWidth()*/, (float)260/*0.35 * ofGetHeight()*/},
 		{(float)400/*0.4 * ofGetWidth()*/, (float)260/*0.35 * ofGetHeight()*/},
+//        {(float)500/*0.4 * ofGetWidth()*/, (float)160/*0.35 * ofGetHeight()*/},
+//        {(float)700/*0.4 * ofGetWidth()*/, (float)460/*0.35 * ofGetHeight()*/},
+        
+//        {(float)600/*0.4 * ofGetWidth()*/, (float)160/*0.35 * ofGetHeight()*/},
 		{(float)0.9 * ofGetWidth(), (float)260/*0.35 * ofGetHeight()*/},
 	};
-	ofVec2f arrMovObsVector[numberOfmovObst] = { {-1, 0}, {0, -1}, {-1, 0} };
+    ofVec2f arrMovObsVector[numberOfmovObst] = { {-1, 0}, {0, -1}, {-1, 0} };
 	
 	for (unsigned int i = 0; i < numberOfmovObst; i++)
 	{
@@ -228,8 +232,24 @@ void ofApp::draw(){
 		//double passedTime = std::chrono::duration<double, std::milli>(end - InitialTime).count();
 		//sprintf(time, "Current Time: %f", passedTime);
 		//myfont.drawString(time, 10, ofGetWindowHeight() - 605);
-  //      sprintf(time, "Elapsed Time: %f", ofGetElapsedTimef());
-  //      myfont.drawString(time, 10, ofGetWindowHeight() - 590);
+        if (SMP::movingStartTime > 0) {
+            sprintf(time, "Moving Start Time: %f", SMP::movingStartTime);
+            myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 725);
+            // Pause
+        }
+        if (SMP::GoalReachedTime > 0) {
+            sprintf(time, "Goal Reached Time: %f", SMP::GoalReachedTime - SMP::movingStartTime);
+            myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 700);
+            // Pause
+        }
+        if (SMP::GoalReachedTime > 0) {
+            sprintf(time, "Execution Time: %f", SMP::GoalReachedTime);
+            myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 675);
+            // Pause
+        }
+        
+        
+//        myfont.drawString(time, 10, ofGetWindowHeight() - 590);
 	}
 #endif // DEBUG
 }

@@ -106,11 +106,19 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 	ofColor greenColor = { 50,145,80 };
 	bool isInside = false;
 
-	if (car->getLocation().distance(SMP::goal1) < converge)
-		planner = false;
+    if (car->getLocation().distance(SMP::goal1) < converge) {
+        planner = false;
+        if (SMP::GoalReachedTime == 0) {
+            SMP::GoalReachedTime = ofGetElapsedTimef();
+        }
+    }
 
-	if (car->getLocation().distance(SMP::goal2) < converge)
-		planner = false;
+    if (car->getLocation().distance(SMP::goal2) < converge) {
+        planner = false;
+        if (SMP::GoalReachedTime == 0) {
+            SMP::GoalReachedTime = ofGetElapsedTimef();
+        }
+    }
 
 	if (planner)
 	{
@@ -137,7 +145,7 @@ inline void Enviroment::update(Robot *car, list<obstacles*> obst)
 		{
 			// [Nov12]	Rather than using an infinite loop,
 			//				Should pass the "collision occured" information to the Open Framework and inform the user.
-//			while (true);
+			while (true);
 //          exit( 3 );
 #if 0
             AllocConsole();

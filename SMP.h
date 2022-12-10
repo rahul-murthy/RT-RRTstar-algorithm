@@ -29,4 +29,5 @@ public:
 	static Nodes* target2;
 	static Nodes* nextTarget;
 	static float movingStartTime;
+    static float GoalReachedTime;
 };

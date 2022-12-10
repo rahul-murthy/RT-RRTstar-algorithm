@@ -6,6 +6,7 @@
 
 // Set current time as moving start time.
 float SMP::movingStartTime = 0;
+float SMP::GoalReachedTime = 0;
 bool SMP::goalFound = false;
 bool SMP::goal1Found = false;
 bool SMP::goal2Found = false;
@@ -727,7 +728,9 @@ void RTRRTstar::addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const 
 		}
 
 		// Set current time as moving start time.
-		SMP::movingStartTime = ofGetElapsedTimef();
+        if (SMP::movingStartTime == 0) {
+            SMP::movingStartTime = ofGetElapsedTimef();
+        }
 	}
 	
 	//TODO: Add the node to the Grid based/KD-Tree Data structure
