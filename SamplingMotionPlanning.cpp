@@ -7,6 +7,8 @@
 // Set current time as moving start time.
 float SMP::movingStartTime = 0;
 float SMP::GoalReachedTime = 0;
+float SMP::PathDistanceToGoal1 = 0;
+float SMP::PathDistanceToGoal2 = 0;
 bool SMP::goalFound = false;
 bool SMP::goal1Found = false;
 bool SMP::goal2Found = false;
@@ -718,11 +720,13 @@ void RTRRTstar::addNode(Nodes n, Nodes* closest, std::list<Nodes>& nodes, const 
 
 		if (target1TotalCost < target2TotalCost)
 		{
+			SMP::PathDistanceToGoal1 = target1TotalCost;
 			goal = goal1;
 			target = target1;
 		}
 		else
 		{
+			SMP::PathDistanceToGoal2 = target2TotalCost;
 			goal = goal2;
 			target = target2;
 		}

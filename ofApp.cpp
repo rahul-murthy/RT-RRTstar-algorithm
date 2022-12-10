@@ -247,6 +247,14 @@ void ofApp::draw(){
             myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 675);
             // Pause
         }
+
+		// Pause
+		sprintf(time, "Distance To Goal1: %f", SMP::PathDistanceToGoal1);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 650);
+		
+		// Pause
+		sprintf(time, "Distance To Goal2: %f", SMP::PathDistanceToGoal2);
+		myfont.drawString(time, ofGetWindowWidth() - 200, ofGetWindowHeight() - 625);
         
         
 //        myfont.drawString(time, 10, ofGetWindowHeight() - 590);

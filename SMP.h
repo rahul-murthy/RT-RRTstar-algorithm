@@ -30,4 +30,6 @@ public:
 	static Nodes* nextTarget;
 	static float movingStartTime;
     static float GoalReachedTime;
+	static float PathDistanceToGoal1;
+	static float PathDistanceToGoal2;
 };
